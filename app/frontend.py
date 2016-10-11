@@ -38,23 +38,23 @@ def create_equation():
     subprocess.call(['seshat', '-c', 'Config/CONFIG', '-i', scg_file.name, '-r', out_file.name])
     return '/'
 
-@frontend.route("/api/show/<integer:idx>")
+@frontend.route("/api/show/<int:idx>")
 def show(idx):
     pass
 
-@frotend.route("/api/save/<integer:idx">)
+@frontend.route("/api/save/<int:idx>")
 def save(idx):
     pass
 
-@frontend.route("/api/delete/<integer:idx>")
+@frontend.route("/api/delete/<int:idx>")
 def delete(idx):
     pass
 
-@fronted.route("/api/share/<integer:idx>")
+@frontend.route("/api/share/<int:idx>")
 def share(idx):
     pass
 
-@frotend.route("/api/signin", methods=["POST"])
+@frontend.route("/api/signin", methods=["POST"])
 def signin():
     pass
 

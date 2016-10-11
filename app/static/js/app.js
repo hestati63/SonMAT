@@ -102,8 +102,38 @@ class About extends React.Component {
 
 // new equation
 class NewEquation extends React.Component {
+  componentDidMount() {
+    var $canvas = $('#drawing-canvas').sketchable();
+
+    $('a#clear').click(function(e) {
+      e.preventDefault();
+      $canvas.sketchable('clear');
+    });
+
+    $('a#undo').click(function(e) {
+      e.preventDefault();
+      $canvas.sketchable('undo');
+    });
+
+    $('a#redo').click(function(e) {
+      e.preventDefault();
+      $canvas.sketchable('redo');
+    });
+  }
+
   render() {
-    return (<h1>Ang Gimotti!</h1>);
+    return (
+      <Col xs={10} xsOffset={1}>
+        <PageHeader>New Equation</PageHeader>
+        <canvas id="drawing-canvas" width="480" height="200" />
+        <div className="controls">
+          <a href="#" id="clear">Clear</a>
+          <a href="#" id="send">Send</a>
+          <a href="#" id="undo">Undo</a>
+          <a href="#" id="redo">Redo</a>
+        </div>
+      </Col>
+    );
   }
 }
 

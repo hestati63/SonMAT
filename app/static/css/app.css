@@ -36,3 +36,13 @@
 {
   margin-bottom: 0px !important;
 }
+
+#drawing-canvas
+{
+  border: 1px solid;
+}
+
+.controls a
+{
+  margin-right: 10px;
+}

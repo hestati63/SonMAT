@@ -110,6 +110,21 @@ class NewEquation extends React.Component {
       $canvas.sketchable('clear');
     });
 
+    $('a#send').click(function(e) {
+      var strokes = $canvas.sketchable('strokes');
+      for (var i = 0; i < strokes.length; i++) {
+        for (var j = 0, stroke = strokes[i]; j < stroke.length; j++) {
+          strokes[i][j] = [strokes[i][j][0], strokes[i][j][1]];
+        }
+      }
+
+      $.post('/api/new_equation', { 'strokes': JSON.stringify(strokes) },
+        function(data) {
+          Router.transitionTo(data);
+        }
+      );
+    });
+
     $('a#undo').click(function(e) {
       e.preventDefault();
       $canvas.sketchable('undo');

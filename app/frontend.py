@@ -15,7 +15,10 @@ def main(s):
 def send_file(path):
     return redirect(url_for('static', filename='formula/' + path))
 
-@frontend.route('/api/new_equation', methods=['POST'])
+
+
+''' ===== API DEFINED FROM HERE ===== '''
+@frontend.route('/api/new', methods=['POST'])
 def create_equation():
     strokes = json.loads(request.form['strokes'])
 
@@ -34,3 +37,35 @@ def create_equation():
         print(f.read())
     subprocess.call(['seshat', '-c', 'Config/CONFIG', '-i', scg_file.name, '-r', out_file.name])
     return '/'
+
+@frontend.route("/api/show/<integer:idx>")
+def show(idx):
+    pass
+
+@frotend.route("/api/save/<integer:idx">)
+def save(idx):
+    pass
+
+@frontend.route("/api/delete/<integer:idx>")
+def delete(idx):
+    pass
+
+@fronted.route("/api/share/<integer:idx>")
+def share(idx):
+    pass
+
+@frotend.route("/api/signin", methods=["POST"])
+def signin():
+    pass
+
+@frontend.route("/api/signup", methods=["POST"])
+def signup():
+    pass
+
+@frontend.route("/api/mypage", methods=["GET", "POST"])
+def mypage():
+    pass
+
+@frontend.route("/api/listing")
+def listing():
+    pass

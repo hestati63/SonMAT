@@ -118,7 +118,7 @@ class NewEquation extends React.Component {
         }
       }
 
-      $.post('/api/new_equation', { 'strokes': JSON.stringify(strokes) },
+      $.post('/api/new', { 'strokes': JSON.stringify(strokes) },
         function(data) {
           browserHistory.push(data);
         }

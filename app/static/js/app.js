@@ -120,7 +120,7 @@ class NewEquation extends React.Component {
 
       $.post('/api/new_equation', { 'strokes': JSON.stringify(strokes) },
         function(data) {
-          Router.transitionTo(data);
+          browserHistory.push(data);
         }
       );
     });

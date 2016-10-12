@@ -23,10 +23,16 @@ var LinkContainer = ReactRouterBootstrap.LinkContainer;
 
 // temp values.
 var is_login = 0;
-
 class App extends React.Component {
+   constructor(props) {
+         super(props);
+         this.state = { si_show: false, su_show: false};
+   };
 
   render() {
+    let si_close = () => this.setState({si_show:false});
+    let su_close = () => this.setState({su_show:false});
+
     var requirelogin = (
       <div>
         <Navbar id="nav">
@@ -49,13 +55,34 @@ class App extends React.Component {
               </LinkContainer>
             </Nav>
             <Nav pullRight>
-              <NavItem eventKey={4}>Sign In</NavItem>
-              <LinkContainer to='signup'>
-                <NavItem eventKey={5}>Sign Up</NavItem>
-              </LinkContainer>
+              <NavItem eventKey={4} onSelect={() => this.setState({si_show: true})}>Sign In</NavItem>
+              <NavItem eventKey={5} onSelect={() => this.setState({su_show: true})}>Sign Up</NavItem>
             </Nav>
           </Navbar.Collapse>
         </Navbar>
+
+        <Modal show={this.state.si_show} onHide={si_close}>
+          <Modal.Header closeButton>
+            <Modal.Title><h2>Sign In</h2></Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button onClick={si_close}>Close</Button>
+          </Modal.Footer>
+        </Modal>
+
+        <Modal show={this.state.su_show} onHide={su_close}>
+          <Modal.Header closeButton>
+            <Modal.Title><h2>Sign Up</h2></Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button onClick={su_close}>Close</Button>
+          </Modal.Footer>
+        </Modal>
+
         {this.props.children}
       </div>
     );
@@ -140,7 +167,10 @@ class NewEquation extends React.Component {
     return (
       <Col xs={10} xsOffset={1}>
         <PageHeader>New Equation</PageHeader>
-        <canvas id="drawing-canvas" width="480" height="200" />
+        <div className="canvas-container">
+        <i className="pin"></i>
+        <canvas id="drawing-canvas" width="480" height="300" className="postit yellow" />
+        </div>
         <div className="controls">
           <a href="#" id="clear">Clear</a>
           <a href="#" id="send">Send</a>

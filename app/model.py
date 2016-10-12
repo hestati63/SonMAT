@@ -21,8 +21,8 @@ class User(Base):
     def __init__(self, _username, _password, _email):
         self.username = _username
         self.password = self.set_password(_password)
-        self.email    = _ email
-    
+        self.email    = _email
+
     def __repr__(self):
         return "<User: {}>".format(self.username)
 

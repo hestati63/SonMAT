@@ -11,6 +11,14 @@
     <script src="{{url_for('static', filename='js/jsketch.min.js')}}"></script>
     <script src="{{url_for('static', filename='js/jquery.sketchable.min.js')}}"></script>
     <script src="{{url_for('static', filename='js/jquery.sketchable.memento.min.js')}}"></script>
+
+    <script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        displayAlign: "left",
+        tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}
+      });
+    </script>
   </head>
   <body>
     <div id="content"></div>

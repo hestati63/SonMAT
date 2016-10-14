@@ -147,7 +147,7 @@ class NewEquation extends React.Component {
 
       $.post('/api/new', { 'strokes': JSON.stringify(strokes) },
         function(data) {
-          browserHistory.push(data);
+          browserHistory.push('show#' + data);
         }
       );
     });
@@ -186,20 +186,27 @@ class NewEquation extends React.Component {
 class Show extends React.Component {
   render() {
     var idx = window.location.hash.split('#')[1];
-    // $.post("/api");
-    var get = '{"latex": "x^2+1", "ci": "/formula/1.gif", "name": "MyNewEquation", "wi": "/formula/1.gif", "hangul": "{x}^{2}+1"}';
-    var data = JSON.parse(get);
+    var res = null;
+    $.ajax({
+       url: "/api/show/" + idx,
+       type: 'get',
+       dataType: 'html',
+       async: false,
+       success: function(data) {
+           res = JSON.parse(data);
+       }
+    });
     return (
       <Col xs={10} xsOffset={1}>
-        <PageHeader id="name">{data['name']}</PageHeader>
-        <Label bsStyle="primary">Your input</Label><br />
-        <img src={data['wi']} /><br />
-        <Label>Converted Result</Label><br />
-        <img src={data['ci']} />
+        <PageHeader id="name">{res['name']}</PageHeader>
+        <Label bsStyle="success">Converted Result</Label><br />
+        <div id="Eq">
+        {'$$' + res['tex'] + '$$'}
+        </div>
         <hr />
-        <Panel header="LaTex" bsStyle="primary">{data['latex']}</Panel><br />
-        <Panel header="Word" bsStyle="success">{data['hangul']}</Panel><br />
-        <Panel header="Hangul" bsStyle="info">{data['hangul']}</Panel><br />
+        <Panel header="Tex" bsStyle="primary">{res['tex']}</Panel><br />
+        <Panel header="Hangul" bsStyle="info">{res['hangul']}</Panel><br />
+        <Panel header="Word" bsStyle="warning">{res['word']}</Panel><br />
       </Col>
     );
   }

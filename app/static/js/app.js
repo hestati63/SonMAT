@@ -184,6 +184,13 @@ class NewEquation extends React.Component {
 
 // show
 class Show extends React.Component {
+  componentDidMount() {
+    MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
+  };
+  componentDidUpdate() {
+    MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
+  };
+
   render() {
     var idx = window.location.hash.split('#')[1];
     var res = null;

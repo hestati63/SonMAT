@@ -15,6 +15,9 @@ def main(s):
 def send_file(path):
     return redirect(url_for('static', filename='formula/' + path))
 
+@frontend.route('/images/<path:path>', methods=['GET'])
+def send_img(path):
+    return redirect(url_for('static', filename='images/' + path))
 
 
 ''' ===== API DEFINED FROM HERE ===== '''

@@ -38,7 +38,9 @@ class MathExp(Base):
     id = Column(Integer, primary_key = True)
     scgfile = Column(String(128), unique = True)
     resfile = Column(String(128), unique = True)
+    name    = Column(String(128), unique = False)
     tex     = Column(String(1024), unique = False)
+    shared  = Column(Boolean, unique = False)
 
     def __init__(self, _tex):
         self.tex = _tex

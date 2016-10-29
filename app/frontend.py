@@ -71,16 +71,68 @@ def share(idx):
 
 @frontend.route("/api/signin", methods=["POST"])
 def signin():
-    pass
+    username = request.form['username']
+    password = request.form['password']
+    if 'user' in session.keys() and \
+        session['user'] != None:
+            return "-1"
+    else:
+        user = User.query.filter_by(username = username).first()
+        if user and user.check_password(password):
+            session['user'] = user
+            return "welcome back {}.".format(username)
+        else:
+            return "wrong password."
+
+@frontend.route("/api/logout")
+def logout():
+    session['user'] = None
 
 @frontend.route("/api/signup", methods=["POST"])
 def signup():
-    pass
+    username    = request.form['username']
+    password    = request.form['password']
+    passwordchk = request.form['passwordchk']
+    email       = request.form['email']
+    if password == passwordchk:
+        if User.query.filter_by(username = username).all() == None:
+            if len(username) < 4:
+                return "username must be longer than 4 letters."
+            if len(password) < 4:
+                return "password must be longer than 4 letters."
+            user = User(username, password, email)
+            db_session.add(user)
+            db_session.commit()
+            return "Sucessfully joined."
+        else:
+            return "User already exists."
+    return "password check fail."
 
 @frontend.route("/api/mypage", methods=["GET", "POST"])
 def mypage():
-    pass
+    if 'user' in session.keys() and session['user'] != None:
+        user = session['user']
+        curpassword = request.form['curpassword']
+        password    = request.form['password']
+        passwordchk = request.form['passwordchk']
+        if user.check_password(curpassword):
+            if password == passwordchk:
+                if len(password) < 4:
+                    return "password must be longer than 4 letters."
+                user.set_password(password)
+                db_session.add(user)
+                db_session.commit()
+            else:
+                return "password check fail."
+        return "current password is wrong."
 
 @frontend.route("/api/listing")
 def listing():
-    pass
+    if session.user == None:
+        abort(500)
+    Exps = session.user.Exps
+    val = []
+    for Exp in Exps:
+        val.append({"name": Exp.name, "tex": Exp.tex})
+    res = {"data": val}
+    return json.dumps(res)

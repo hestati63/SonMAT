@@ -38,7 +38,7 @@ class App extends React.Component {
         <Navbar id="nav">
           <Navbar.Header>
             <Navbar.Brand>
-              SonMat
+            <img src="/images/logo.png" />
             </Navbar.Brand>
             <Navbar.Toggle />
           </Navbar.Header>
@@ -205,7 +205,16 @@ class Show extends React.Component {
     });
     return (
       <Col xs={10} xsOffset={1}>
-        <PageHeader id="name">{res['name']}</PageHeader>
+        <PageHeader id="name">
+        <Col xs={6}>
+        {res['name']}
+        </Col>
+        <Col xs={6} id="btns" className="text-right">
+        <Button bsStyle="mstyle">share</Button>
+        &nbsp;
+        <Button bsStyle="mstyle">save</Button>
+        </Col>
+        </PageHeader>
         <Label bsStyle="success">Converted Result</Label><br />
         <div id="Eq">
         {'$$' + res['tex'] + '$$'}
@@ -226,7 +235,7 @@ var EquationGal = React.createClass({
       <Col xs={6} md={4}>
         <div className="card">
           <h3>{this.props.name}</h3>
-          <img src={this.props.url} />
+          {'$$' + this.props.val + '$$'}
           <p>
             <LinkContainer to={"show#" + this.props.idx}>
               <Button bsStyle="primary">Show</Button>
@@ -247,13 +256,19 @@ var EquationGal = React.createClass({
 });
 
 class MyEquation extends React.Component {
+  componentDidMount() {
+    MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
+  };
+  componentDidUpdate() {
+    MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
+  };
+
   render() {
     return (
       <Row>
         <Col xs={10} xsOffset={1}>
-          <EquationGal name="MyEquation" url="/formula/1.gif" idx={1}></EquationGal>
-          <EquationGal name="Calculus1" url="/formula/2.gif" idx={2}></EquationGal>
-          <EquationGal name="Calculus2" url="/formula/3.gif" idx={3}></EquationGal>
+          <EquationGal name="MyEquation" val="2+1" idx={1}></EquationGal>
+          <EquationGal name="Calculus1" val="1+2" idx={2}></EquationGal>
         </Col>
       </Row>
     );

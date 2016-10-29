@@ -40,6 +40,7 @@
 .controls
 {
   margin-top: 20px;
+  margin-bottom: 20px;
 }
 
 .controls a
@@ -63,11 +64,6 @@
 
 .yellow {
   background: #eae672;
-  -webkit-transform: rotate(2deg);
-  -moz-transform: rotate(2deg);
-  -o-transform: rotate(2deg);
-  -ms-transform: rotate(2deg);
-  transform: rotate(2deg);
 }
 
 .pin {
@@ -123,4 +119,21 @@
 
 #Eq{
   padding-left: 14px;
+}
+
+#btns{
+  float: None !important;
+  display: inline-block;
+}
+
+.btn-mstyle{
+  color: #3c5b97;
+  background-color: #fff;
+  border-color:#3c5b97;
+}
+
+.btn-mstyle:hover{
+  color:#fff;
+  background-color: #3c5b97;
+  border-color: #3c5b97;
 }

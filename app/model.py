@@ -2,13 +2,7 @@ from . import Base, engine
 from sqlalchemy import Table, Column, Integer, String, Boolean, DateTime, ForeignKey, desc, asc
 from sqlalchemy.orm import relationship, backref
 from werkzeug.security import generate_password_hash, check_password_hash
-
-
-Exps = Table('Exps',
-         Base.metadata,
-         Column('User_id', Integer, ForeignKey('User.id')),
-         Column('MathExp_id',Integer, ForeignKey('MathExp.id'))
-        )
+import json
 
 class User(Base):
     __tablename__ = "User"
@@ -16,7 +10,7 @@ class User(Base):
     username  = Column(String(32), unique = True)
     password  = Column(String(64), unique = False)
     email     = Column(String(64), unique = True)
-    Exps      = relationship('MathExp', secondary=Exps, lazy='dynamic')
+    Exps      = relationship("MathExp", backref = "owner")
 
     def __init__(self, _username, _password, _email):
         self.username = _username
@@ -44,6 +38,29 @@ class MathExp(Base):
 
     def __init__(self, _tex):
         self.tex = _tex
+
+    def is_shared(self):
+        return self.shared == True
+
+    def make_share(self):
+        self.shared = True
+
+    def make_unshare(self):
+        self.shared = False
+
+    def make_hangul(self):
+        return '1'
+
+    def make_word(self):
+        return '2'
+
+    def jsonfy():
+        res = {'msg'   : 1,
+               'tex'   : self.tex,
+               'hangul': self.make_hangul(),
+               'word'  : self.make_word(),
+               'name'  : self.name}
+        return json.dumps(res)
 
 def init_db():
     Base.metadata.create_all(bind=engine)

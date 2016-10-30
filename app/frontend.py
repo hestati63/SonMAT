@@ -41,33 +41,57 @@ def create_equation():
         print(f.read())
     subprocess.call(['seshat', '-c', 'Config/CONFIG', '-i', scg_file.name, '-r', out_file.name])
     '''
+    session['exp'] = MathExp('1+1=2')
     return "1"
 
 @frontend.route("/api/show/<int:idx>")
 def show(idx):
-
+    #exp = MathExp.query.filter_by(id = idx).first()
     ''' Temporal input'''
-    Exp = MathExp("{x}^{3}+1")
+    exp = MathExp("{x}^{3}+1")
+    exp.make_share()
 
+    user = session['user'] if 'user' in session.keys() else None
+    if exp and \
+        (exp.owner == user or exp.is_shared()) :
+        return exp.jsonfy();
+    return json.dumps({'msg': -1})
 
-    res = {"tex"    : Exp.tex,
-           "hangul" : Exp.tex,
-           "word"   : Exp.tex,
-           "name"   : "My First Equation",
-    }
-    return json.dumps(res)
-
-@frontend.route("/api/save/<int:idx>")
-def save(idx):
-    pass
+@frontend.route("/api/save")
+def save():
+    if 'user' in session.keys() and session['user'] != None \
+        and 'exp' in session.keys() and session['exp'] != None:
+            user = session['user']
+            exp  = session['exp']
+            db_session.add(exp)
+            db_session.commit()
+            user.Exps.append(exp)
+            db_session.add(user)
+            db_session.commit()
+            return json.dumps({'msg': exp.id})
 
 @frontend.route("/api/delete/<int:idx>")
 def delete(idx):
-    pass
+    exp = MathExp.query.filter_by(id = idx).first()
+    user = session['user']
+    if exp and exp.owner == user:
+        user.Exps.remove(exp)
+        db_session.add(user)
+        db_session.delete(exp)
+        db_session.commit()
+        return json.dumps({'msg': 1})
+    return json.dumps({'msg': -1})
 
 @frontend.route("/api/share/<int:idx>")
 def share(idx):
-    pass
+    exp = MathExp.query.filter_by(id = idx).first()
+    user = session['user']
+    if exp and exp.owner == user:
+        exp.make_share()
+        db_session.add(exp)
+        db_session.commit()
+        return json.dumps({'msg': 1})
+    return json.dumps({'msg': -1})
 
 @frontend.route("/api/signin", methods=["POST"])
 def signin():
@@ -75,18 +99,20 @@ def signin():
     password = request.form['password']
     if 'user' in session.keys() and \
         session['user'] != None:
-            return "-1"
+            return json.dumps({'msg': -1})
     else:
         user = User.query.filter_by(username = username).first()
         if user and user.check_password(password):
             session['user'] = user
-            return "welcome back {}.".format(username)
+            return json.dumps({'msg': 'welcome back {}.'.format(username)})
         else:
-            return "wrong password."
+            return json.dumps({'msg': 'wrong password.'})
 
 @frontend.route("/api/logout")
 def logout():
     session['user'] = None
+    session['exp']  = None
+    return json.dumps({'msg': 'bye'})
 
 @frontend.route("/api/signup", methods=["POST"])
 def signup():
@@ -97,16 +123,16 @@ def signup():
     if password == passwordchk:
         if User.query.filter_by(username = username).all() == None:
             if len(username) < 4:
-                return "username must be longer than 4 letters."
+                return json.dumps({'msg': 'username must be longer than 4 letters.'})
             if len(password) < 4:
-                return "password must be longer than 4 letters."
+                return json.dumps({'msg': 'password must be longer than 4 letters.'})
             user = User(username, password, email)
             db_session.add(user)
             db_session.commit()
-            return "Sucessfully joined."
+            return json.dumps({'msg': 'Sucessfully joined.'})
         else:
-            return "User already exists."
-    return "password check fail."
+            return json.dumps({'msg': 'User already exists.'})
+    return json.dumps({'msg': 'password check fail.'})
 
 @frontend.route("/api/mypage", methods=["GET", "POST"])
 def mypage():
@@ -118,13 +144,14 @@ def mypage():
         if user.check_password(curpassword):
             if password == passwordchk:
                 if len(password) < 4:
-                    return "password must be longer than 4 letters."
+                    return json.dumps({'msg': 'password must be longer than 4 letters.'})
                 user.set_password(password)
                 db_session.add(user)
                 db_session.commit()
             else:
-                return "password check fail."
-        return "current password is wrong."
+                return json.dumps({'msg': 'password check fail.'})
+        return json.dumps({'msg': 'wrong current password'})
+    return json.dumps({'msg': -1})
 
 @frontend.route("/api/listing")
 def listing():
@@ -134,5 +161,4 @@ def listing():
     val = []
     for Exp in Exps:
         val.append({"name": Exp.name, "tex": Exp.tex})
-    res = {"data": val}
-    return json.dumps(res)
+    return json.dumps({"data": val})

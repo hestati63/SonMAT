@@ -6,6 +6,10 @@ from .model import MathExp, User
 app = Flask(__name__)
 frontend = Blueprint('frontend', __name__)
 
+def get_user():
+    return session['user'] if 'user' in session.keys() \
+            else None
+
 @frontend.route('/', methods=['GET'], defaults={'s':''})
 @frontend.route('/<string:s>', methods=['GET'])
 def main(s):
@@ -51,7 +55,7 @@ def show(idx):
     exp = MathExp("{x}^{3}+1")
     exp.make_share()
 
-    user = session['user'] if 'user' in session.keys() else None
+    user = get_user()
     if exp and \
         (exp.owner == user or exp.is_shared()) :
         return exp.jsonfy();
@@ -59,7 +63,8 @@ def show(idx):
 
 @frontend.route("/api/save")
 def save():
-    if 'user' in session.keys() and session['user'] != None \
+    user = get_user()
+    if get_user() != None \
         and 'exp' in session.keys() and session['exp'] != None:
             user = session['user']
             exp  = session['exp']
@@ -73,7 +78,7 @@ def save():
 @frontend.route("/api/delete/<int:idx>")
 def delete(idx):
     exp = MathExp.query.filter_by(id = idx).first()
-    user = session['user']
+    user = get_user()
     if exp and exp.owner == user:
         user.Exps.remove(exp)
         db_session.add(user)
@@ -85,7 +90,7 @@ def delete(idx):
 @frontend.route("/api/share/<int:idx>")
 def share(idx):
     exp = MathExp.query.filter_by(id = idx).first()
-    user = session['user']
+    user = get_user()
     if exp and exp.owner == user:
         exp.make_share()
         db_session.add(exp)
@@ -97,9 +102,8 @@ def share(idx):
 def signin():
     username = request.form['username']
     password = request.form['password']
-    if 'user' in session.keys() and \
-        session['user'] != None:
-            return json.dumps({'msg': -1})
+    if get_user() != None:
+        return json.dumps({'msg': -1})
     else:
         user = User.query.filter_by(username = username).first()
         if user and user.check_password(password):
@@ -116,6 +120,8 @@ def logout():
 
 @frontend.route("/api/signup", methods=["POST"])
 def signup():
+    if get_user() != None:
+        return json.dumps({'msg': -1})
     username    = request.form['username']
     password    = request.form['password']
     passwordchk = request.form['passwordchk']
@@ -136,8 +142,8 @@ def signup():
 
 @frontend.route("/api/mypage", methods=["GET", "POST"])
 def mypage():
-    if 'user' in session.keys() and session['user'] != None:
-        user = session['user']
+    user = get_user()
+    if user != None:
         curpassword = request.form['curpassword']
         password    = request.form['password']
         passwordchk = request.form['passwordchk']
@@ -155,10 +161,10 @@ def mypage():
 
 @frontend.route("/api/listing")
 def listing():
-    if session.user == None:
-        abort(500)
-    Exps = session.user.Exps
-    val = []
-    for Exp in Exps:
-        val.append({"name": Exp.name, "tex": Exp.tex})
-    return json.dumps({"data": val})
+    user = get_user()
+    if user == None:
+        val = list()
+        for Exp in user.Exps:
+            val.append({'name': Exp.name, 'tex': Exp.tex})
+        return json.dumps({'msg': 1, 'data': val})
+    return json.dumps({'msg': -1})

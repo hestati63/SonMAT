@@ -1,7 +1,8 @@
 import json
 import tempfile
 import subprocess
-from flask import Flask, Blueprint, render_template, request, send_from_directory, redirect, url_for
+from . import db_session
+from flask import Flask, Blueprint, render_template, request, send_from_directory, redirect, url_for, session
 from .model import MathExp, User
 app = Flask(__name__)
 frontend = Blueprint('frontend', __name__)
@@ -127,7 +128,7 @@ def signup():
     passwordchk = request.form['passwordchk']
     email       = request.form['email']
     if password == passwordchk:
-        if User.query.filter_by(username = username).all() == None:
+        if User.query.filter_by(username = username).first() == None:
             if len(username) < 4:
                 return json.dumps({'msg': 'username must be longer than 4 letters.'})
             if len(password) < 4:
@@ -135,12 +136,12 @@ def signup():
             user = User(username, password, email)
             db_session.add(user)
             db_session.commit()
-            return json.dumps({'msg': 'Sucessfully joined.'})
+            return json.dumps({'msg': 'Successfully joined.'})
         else:
             return json.dumps({'msg': 'User already exists.'})
     return json.dumps({'msg': 'password check fail.'})
 
-@frontend.route("/api/mypage", methods=["GET", "POST"])
+@frontend.route("/api/mypage", methods=["POST"])
 def mypage():
     user = get_user()
     if user != None:

@@ -4,17 +4,19 @@ from sqlalchemy.orm import relationship, backref
 from werkzeug.security import generate_password_hash, check_password_hash
 import json
 
+
+
 class User(Base):
     __tablename__ = "User"
     id        = Column(Integer, primary_key = True)
     username  = Column(String(32), unique = True)
     password  = Column(String(64), unique = False)
-    email     = Column(String(64), unique = True)
-    Exps      = relationship("MathExp", backref = "owner")
+    email     = Column(String(64), unique = False)
+    Exps      = relationship("MathExp", backref="owner")
 
     def __init__(self, _username, _password, _email):
         self.username = _username
-        self.password = self.set_password(_password)
+        self.set_password(_password)
         self.email    = _email
 
     def __repr__(self):
@@ -29,12 +31,15 @@ class User(Base):
 
 class MathExp(Base):
     __tablename__ = "MathExp"
-    id = Column(Integer, primary_key = True)
+    id      = Column(Integer, primary_key = True)
     scgfile = Column(String(128), unique = True)
     resfile = Column(String(128), unique = True)
     name    = Column(String(128), unique = False)
     tex     = Column(String(1024), unique = False)
     shared  = Column(Boolean, unique = False)
+
+    user_id = Column(Integer, ForeignKey('User.id'))
+
 
     def __init__(self, _tex):
         self.tex = _tex

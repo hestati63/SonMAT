@@ -18,6 +18,8 @@ var Panel = ReactBootstrap.Panel;
 var Row = ReactBootstrap.Row;
 var Label = ReactBootstrap.Label;
 var Thumbnail = ReactBootstrap.Thumbnail;
+var ControlLabel = ReactBootstrap.ControlLabel;
+var FormControl = ReactBootstrap.FormControl;
 
 var LinkContainer = ReactRouterBootstrap.LinkContainer;
 
@@ -32,6 +34,21 @@ class App extends React.Component {
   render() {
     let si_close = () => this.setState({si_show:false});
     let su_close = () => this.setState({su_show:false});
+    let si_click = function(){
+      $.post("/api/signin", {"username": $("#Iusername").val(),
+             "password": $("#Ipasswd").val()
+      });
+      si_close();
+    };
+    let su_click = function(){
+    $.post("/api/signup", {"username": $("#Uusername").val(),
+        "password": $("#Upasswd").val(),
+        "passwordchk": $("#Upasswdchk").val(),
+        "email": $("#Uemail").val()}
+          );
+      su_close();
+
+    };
 
     var requirelogin = (
       <div>
@@ -66,9 +83,15 @@ class App extends React.Component {
             <Modal.Title><h2>Sign In</h2></Modal.Title>
           </Modal.Header>
           <Modal.Body>
+            <form>
+            <ControlLabel>Username</ControlLabel>
+            <FormControl type="text" placeholder="Enter Username" id="Iusername"/>
+            <ControlLabel>Password</ControlLabel>
+            <FormControl type="password" placeholder="Enter Password" id="Ipasswd"/>
+            </form>
           </Modal.Body>
           <Modal.Footer>
-            <Button onClick={si_close}>Close</Button>
+            <Button onClick={si_click}>Sign in</Button>
           </Modal.Footer>
         </Modal>
 
@@ -77,9 +100,19 @@ class App extends React.Component {
             <Modal.Title><h2>Sign Up</h2></Modal.Title>
           </Modal.Header>
           <Modal.Body>
+            <form>
+            <ControlLabel>Username</ControlLabel>
+            <FormControl type="text" placeholder="Enter Username" id="Uusername"/>
+            <ControlLabel>Password</ControlLabel>
+            <FormControl type="password" placeholder="Enter Password" id="Upasswd"/>
+            <ControlLabel>Password Check</ControlLabel>
+            <FormControl type="password" placeholder="Reenter Password" id="Upasswdchk"/>
+            <ControlLabel>Email</ControlLabel>
+            <FormControl type="text" placeholder="Enter Email" id="Uemail"/>
+            </form>
           </Modal.Body>
           <Modal.Footer>
-            <Button onClick={su_close}>Close</Button>
+            <Button onClick={su_click}>Sign up</Button>
           </Modal.Footer>
         </Modal>
 

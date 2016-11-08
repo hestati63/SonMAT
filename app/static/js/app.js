@@ -37,17 +37,38 @@ class App extends React.Component {
     let si_click = function(){
       $.post("/api/signin", {"username": $("#Iusername").val(),
              "password": $("#Ipasswd").val()
+      }).done(function(data){
+        var msg = JSON.parse(data)['msg'];
+        if(msg == "login fail")
+        {
+            toastr.error(msg);
+        }
+        else if(msg != "-1")
+        {
+            toastr.success(msg);
+            is_login = 1;
+            si_close();
+        }
       });
-      si_close();
     };
     let su_click = function(){
     $.post("/api/signup", {"username": $("#Uusername").val(),
         "password": $("#Upasswd").val(),
         "passwordchk": $("#Upasswdchk").val(),
         "email": $("#Uemail").val()}
-          );
-      su_close();
-
+          ).done(function(data)
+          {
+            var msg = JSON.parse(data)['msg'];
+            if(msg == "Successfully joined.")
+              {
+                toastr.success(msg);
+                su_close();
+              }
+            else if(msg != -1)
+              {
+                toastr.error(msg);
+              }
+          });
     };
 
     var requirelogin = (
@@ -116,6 +137,40 @@ class App extends React.Component {
           </Modal.Footer>
         </Modal>
 
+        {this.props.children}
+      </div>
+    );
+    var logined = (
+      <div>
+        <Navbar id="nav">
+          <Navbar.Header>
+            <Navbar.Brand>
+            <img src="/images/logo.png" />
+            </Navbar.Brand>
+            <Navbar.Toggle />
+          </Navbar.Header>
+          <Navbar.Collapse>
+            <Nav>
+              <LinkContainer to='home'>
+                <NavItem eventkey={1}>Home</NavItem>
+              </LinkContainer>
+              <LinkContainer to='about'>
+                <NavItem eventkey={2}>About</NavItem>
+              </LinkContainer>
+              <LinkContainer to='NewEquation'>
+                <NavItem eventKey={3}>New Equation</NavItem>
+              </LinkContainer>
+              <LinkContainer to='MyEquation'>
+                <NavItem eventKey={4}>MyEquation</NavItem>
+              </LinkContainer>
+
+            </Nav>
+            <Nav pullRight>
+              <NavItem eventKey={5} onSelect={() => this.setState({si_show: true})}>Mypage</NavItem>
+              <NavItem eventKey={6} onSelect={() => this.setState({su_show: true})}>Logout</NavItem>
+            </Nav>
+          </Navbar.Collapse>
+        </Navbar>
         {this.props.children}
       </div>
     );

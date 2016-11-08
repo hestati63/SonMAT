@@ -111,7 +111,7 @@ def signin():
             session['user'] = user
             return json.dumps({'msg': 'welcome back {}.'.format(username)})
         else:
-            return json.dumps({'msg': 'wrong password.'})
+            return json.dumps({'msg': 'login fail'})
 
 @frontend.route("/api/logout")
 def logout():

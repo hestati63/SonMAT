@@ -11,6 +11,53 @@ def get_user():
     return session['user'] if 'user' in session.keys() \
             else None
 
+def parse_seshat(strokes, seshat_output):
+    symbols = []
+    latex = ''
+
+    symbol_lines = False
+    latex_line = False
+    for line in seshat_output.split('\n'):
+        if not line.strip():
+            symbol_lines = False
+            latex_line = False
+            continue
+        elif line.startswith('Math Symbols:'):
+            symbol_lines = True
+            continue
+        elif line.startswith('LaTeX:'):
+            latex_line = True
+            continue
+
+        if symbol_lines:
+            sym_latex, sym_strokes = line.split('{')
+            sym_latex = sym_latex.strip()
+            sym_strokes = map(int, sym_strokes.split('}')[0].strip().split())
+            sym_strokes = [strokes[idx] for idx in sym_strokes]
+            x_min = x_max = sym_strokes[0][0][0]
+            y_min = y_max = sym_strokes[0][0][1]
+            for stroke in sym_strokes:
+                for point in stroke:
+                    if x_min > point[0]:
+                        x_min = point[0]
+                    elif x_max < point[0]:
+                        x_max = point[0]
+                    if y_min > point[1]:
+                        y_min = point[1]
+                    elif y_max < point[1]:
+                        y_max = point[1]
+
+            symbols.append({'latex': sym_latex,
+                            'strokes': sym_strokes,
+                            'width': x_max - x_min,
+                            'height': y_max - y_min,
+                            'center': [(x_min + x_max) / 2,
+                                       (y_min + y_max) / 2]})
+        elif latex_line:
+            latex = line
+
+    return {'latex': latex, 'symbols': symbols}
+
 @frontend.route('/', methods=['GET'], defaults={'s':''})
 @frontend.route('/<string:s>', methods=['GET'])
 def main(s):
@@ -28,7 +75,6 @@ def send_img(path):
 ''' ===== API DEFINED FROM HERE ===== '''
 @frontend.route('/api/new', methods=['POST'])
 def create_equation():
-    '''
     strokes = json.loads(request.form['strokes'])
 
     out_file = tempfile.NamedTemporaryFile(delete=False)
@@ -42,10 +88,15 @@ def create_equation():
             scg_file.write('{} {}\n'.format(point[0], point[1]))
     scg_file.close()
 
-    with open(scg_file.name, 'r') as f:
-        print(f.read())
-    subprocess.call(['seshat', '-c', 'Config/CONFIG', '-i', scg_file.name, '-r', out_file.name])
-    '''
+    pipe = subprocess.Popen(
+        ['seshat',
+         '-c', 'Config/CONFIG',
+         '-i', scg_file.name,
+         '-d', out_file.name],
+        stdout=subprocess.PIPE)
+    seshat_output = pipe.stdout.read()
+    seshat_obj = parse_seshat(strokes, seshat_output)
+
     session['exp'] = MathExp('1+1=2')
     return "1"
 

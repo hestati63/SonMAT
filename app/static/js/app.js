@@ -27,48 +27,41 @@ var LinkContainer = ReactRouterBootstrap.LinkContainer;
 var is_login = 0;
 class App extends React.Component {
    constructor(props) {
-         super(props);
-         this.state = { si_show: false, su_show: false};
+     super(props);
+     this.state = {si_show: false, su_show: false};
    };
 
   render() {
-    let si_close = () => this.setState({si_show:false});
-    let su_close = () => this.setState({su_show:false});
-    let si_click = function(){
+    let si_close = () => this.setState({si_show: false});
+    let su_close = () => this.setState({su_show: false});
+    let si_click = function() {
       $.post("/api/signin", {"username": $("#Iusername").val(),
-             "password": $("#Ipasswd").val()
-      }).done(function(data){
+        "password": $("#Ipasswd").val()
+      }).done(function(data) {
         var msg = JSON.parse(data)['msg'];
-        if(msg == "login fail")
-        {
-            toastr.error(msg);
-        }
-        else if(msg != "-1")
-        {
-            toastr.success(msg);
-            is_login = 1;
-            si_close();
+        if (msg == "login fail") {
+          toastr.error(msg);
+        } else if (msg != "-1") {
+          toastr.success(msg);
+          is_login = 1;
+          si_close();
         }
       });
     };
-    let su_click = function(){
-    $.post("/api/signup", {"username": $("#Uusername").val(),
+    let su_click = function() {
+      $.post("/api/signup", {"username": $("#Uusername").val(),
         "password": $("#Upasswd").val(),
         "passwordchk": $("#Upasswdchk").val(),
         "email": $("#Uemail").val()}
-          ).done(function(data)
-          {
-            var msg = JSON.parse(data)['msg'];
-            if(msg == "Successfully joined.")
-              {
-                toastr.success(msg);
-                su_close();
-              }
-            else if(msg != -1)
-              {
-                toastr.error(msg);
-              }
-          });
+      ).done(function(data) {
+        var msg = JSON.parse(data)['msg'];
+        if (msg == "Successfully joined.") {
+          toastr.success(msg);
+          su_close();
+        } else if (msg != -1) {
+          toastr.error(msg);
+        }
+      });
     };
 
     var requirelogin = (
@@ -76,7 +69,7 @@ class App extends React.Component {
         <Navbar id="nav">
           <Navbar.Header>
             <Navbar.Brand>
-            <img src="/images/logo.png" />
+              <img src="/images/logo.png" />
             </Navbar.Brand>
             <Navbar.Toggle />
           </Navbar.Header>
@@ -273,10 +266,10 @@ class NewEquation extends React.Component {
 // show
 class Show extends React.Component {
   componentDidMount() {
-    MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
+    MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
   };
   componentDidUpdate() {
-    MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
+    MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
   };
 
   render() {
@@ -288,24 +281,24 @@ class Show extends React.Component {
        dataType: 'html',
        async: false,
        success: function(data) {
-           res = JSON.parse(data);
+         res = JSON.parse(data);
        }
     });
     return (
       <Col xs={10} xsOffset={1}>
         <PageHeader id="name">
-        <Col xs={6}>
-        {res['name']}
-        </Col>
-        <Col xs={6} id="btns" className="text-right">
-        <Button bsStyle="mstyle">share</Button>
-        &nbsp;
-        <Button bsStyle="mstyle">save</Button>
-        </Col>
+          <Col xs={6}>
+            {res['name']}
+          </Col>
+          <Col xs={6} id="btns" className="text-right">
+            <Button bsStyle="mstyle">share</Button>
+            &nbsp;
+            <Button bsStyle="mstyle">save</Button>
+          </Col>
         </PageHeader>
         <Label bsStyle="success">Converted Result</Label><br />
         <div id="Eq">
-        {'$$' + res['tex'] + '$$'}
+          {'$$' + res['tex'] + '$$'}
         </div>
         <hr />
         <Panel header="Tex" bsStyle="primary">{res['tex']}</Panel><br />
@@ -345,10 +338,10 @@ var EquationGal = React.createClass({
 
 class MyEquation extends React.Component {
   componentDidMount() {
-    MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
+    MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
   };
   componentDidUpdate() {
-    MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
+    MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
   };
 
   render() {

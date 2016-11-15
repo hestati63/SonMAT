@@ -35,14 +35,35 @@ class MathExp(Base):
     scgfile = Column(String(128), unique = True)
     resfile = Column(String(128), unique = True)
     name    = Column(String(128), unique = False)
-    tex     = Column(String(1024), unique = False)
     shared  = Column(Boolean, unique = False)
 
+    tex     = Column(String(1024), unique = False)
     user_id = Column(Integer, ForeignKey('User.id'))
 
 
-    def __init__(self, _tex):
-        self.tex = _tex
+    def __init__(self, _res):
+        self.res = _res['symbols']
+        self.tex = _res['latex']
+        sorted(self.res, key = lambda x: x.idx)
+
+    def _internal_loop(self, _cur, sym_li):
+        while len(sym_li) != 0:
+            _next = sym_li.pop(0)
+            print _cur, _next
+            location = _next.location(_cur)
+            self._internal_loop(_next, sym_li)
+            if location in [0, 1, -1]:
+                _cur.next.append((location, _next))
+            else:
+                sym_li.insert(0, _next)
+                return False
+        return True
+
+    def fixup(self):
+        _cur = self.res.pop(0)
+        if self._internal_loop(_cur, self.res):
+            self.tex = _cur.gen_tex()
+
 
     def is_shared(self):
         return self.shared == True
@@ -54,12 +75,12 @@ class MathExp(Base):
         self.shared = False
 
     def make_hangul(self):
-        return '1'
+        return 'Todo'
 
     def make_word(self):
-        return '2'
+        return 'Todo'
 
-    def jsonfy():
+    def jsonfy(self):
         res = {'msg'   : 1,
                'tex'   : self.tex,
                'hangul': self.make_hangul(),

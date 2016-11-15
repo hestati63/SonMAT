@@ -2,18 +2,36 @@ import json
 import tempfile
 import subprocess
 from . import db_session
+from . import fix
 from flask import Flask, Blueprint, render_template, request, send_from_directory, redirect, url_for, session
 from .model import MathExp, User
 app = Flask(__name__)
 frontend = Blueprint('frontend', __name__)
 
+@frontend.route('/', methods=['GET'], defaults={'s':''})
+@frontend.route('/<string:s>', methods=['GET'])
+def main(s):
+    return render_template("main.html")
+
+@frontend.route('/formula/<path:path>', methods=['GET'])
+def send_file(path):
+    return redirect(url_for('static', filename='formula/' + path))
+
+@frontend.route('/images/<path:path>', methods=['GET'])
+def send_img(path):
+    return redirect(url_for('static', filename='images/' + path))
+
+
+''' ===== API DEFINED FROM HERE ===== '''
 def get_user():
-    return session['user'] if 'user' in session.keys() \
-            else None
+    return session['user'] \
+            if 'user' in session.keys() else None
+
 
 def parse_seshat(strokes, seshat_output):
     symbols = []
     latex = ''
+    index = 0
 
     symbol_lines = False
     latex_line = False
@@ -36,8 +54,12 @@ def parse_seshat(strokes, seshat_output):
             sym_strokes = [strokes[idx] for idx in sym_strokes]
             x_min = x_max = sym_strokes[0][0][0]
             y_min = y_max = sym_strokes[0][0][1]
+            cx = cy = n = 0.0
             for stroke in sym_strokes:
                 for point in stroke:
+                    cx += point[0]
+                    cy += point[1]
+                    n += 1
                     if x_min > point[0]:
                         x_min = point[0]
                     elif x_max < point[0]:
@@ -46,33 +68,13 @@ def parse_seshat(strokes, seshat_output):
                         y_min = point[1]
                     elif y_max < point[1]:
                         y_max = point[1]
-
-            symbols.append({'latex': sym_latex,
-                            'strokes': sym_strokes,
-                            'width': x_max - x_min,
-                            'height': y_max - y_min,
-                            'center': [(x_min + x_max) / 2,
-                                       (y_min + y_max) / 2]})
+            symbols.append(fix.symbol(index, sym_latex, x_max, x_min, y_max, y_min, (cx/n, cy/n)))
+            index += 1
         elif latex_line:
             latex = line
 
     return {'latex': latex, 'symbols': symbols}
 
-@frontend.route('/', methods=['GET'], defaults={'s':''})
-@frontend.route('/<string:s>', methods=['GET'])
-def main(s):
-    return render_template("main.html")
-
-@frontend.route('/formula/<path:path>', methods=['GET'])
-def send_file(path):
-    return redirect(url_for('static', filename='formula/' + path))
-
-@frontend.route('/images/<path:path>', methods=['GET'])
-def send_img(path):
-    return redirect(url_for('static', filename='images/' + path))
-
-
-''' ===== API DEFINED FROM HERE ===== '''
 @frontend.route('/api/new', methods=['POST'])
 def create_equation():
     strokes = json.loads(request.form['strokes'])
@@ -96,16 +98,22 @@ def create_equation():
         stdout=subprocess.PIPE)
     seshat_output = pipe.stdout.read()
     seshat_obj = parse_seshat(strokes, seshat_output)
-
-    session['exp'] = MathExp('1+1=2')
-    return "1"
+    exp = MathExp(seshat_obj)
+    exp.name = "Result"
+    exp.fixup()
+    print seshat_obj['latex'], exp.tex
+    session['exp'] = exp
+    msg = seshat_obj['latex']
+    return json.dumps({'res': 1, 'msg': msg, 'fix': exp.tex})
 
 @frontend.route("/api/show/<int:idx>")
 def show(idx):
-    #exp = MathExp.query.filter_by(id = idx).first()
-    ''' Temporal input'''
-    exp = MathExp("{x}^{3}+1")
-    exp.make_share()
+    if idx == 0:
+        exp = session['exp']
+    else:
+        #exp = MathExp.query.filter_by(id = idx).first()
+        ''' Temporal input'''
+        exp.make_share()
 
     user = get_user()
     if exp and \

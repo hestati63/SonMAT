@@ -228,7 +228,17 @@ class NewEquation extends React.Component {
 
       $.post('/api/new', { 'strokes': JSON.stringify(strokes) },
         function(data) {
-          browserHistory.push('show#' + data);
+          var res = JSON.parse(data);
+          if(res['res'] == 1)
+          {
+            console.log(res['msg']);
+            //console.log(res['fix']);
+            browserHistory.push('show');
+          }
+          else
+          {
+            toastr.error("Fail to convert message.");
+          }
         }
       );
     });
@@ -274,6 +284,8 @@ class Show extends React.Component {
 
   render() {
     var idx = window.location.hash.split('#')[1];
+    if(idx == undefined || idx.isdigit() != True)
+      idx = "0";
     var res = null;
     $.ajax({
        url: "/api/show/" + idx,

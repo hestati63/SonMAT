@@ -7,4 +7,7 @@ if __name__ == "__main__":
     if arg == "initdb":
         init_db()
     elif arg == "runserver":
-        app.run("0.0.0.0", debug = True);
+        if len(sys.argv) > 2:
+            app.run("0.0.0.0", port=int(sys.argv[2]), debug=True)
+        else:
+            app.run("0.0.0.0", debug=True)

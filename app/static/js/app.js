@@ -333,6 +333,9 @@ class Show extends React.Component {
          res = JSON.parse(data);
        }
     });
+    if (res['msg'] == -1) {
+      browserHistory.push(-1);
+    }
     return (
       <Col xs={10} xsOffset={1}>
         <PageHeader id="name">

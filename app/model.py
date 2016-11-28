@@ -12,7 +12,7 @@ class User(Base):
     username  = Column(String(32), unique = True)
     password  = Column(String(64), unique = False)
     email     = Column(String(64), unique = False)
-    Exps      = relationship("MathExp", backref="owner")
+    Exps      = relationship("MathExp", backref="owner", lazy='subquery')
 
     def __init__(self, _username, _password, _email):
         self.username = _username

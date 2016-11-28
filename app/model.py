@@ -28,6 +28,15 @@ class User(Base):
     def check_password(self, password):
         return check_password_hash(self.password, password)
 
+hangul_map = {'\\rightarrow': '->', '\\lt': '<', '\\gt': '>',
+        '\\leq': '<=', '\\geq': '>=', '\\neq': '!=',
+        '\\pm': '+-', '\\times': 'times', '\\exists': 'EXISTS',
+        '\\forall': 'FORALL', '\\in': 'in', '\\int': 'int',
+        '\\sqrt': 'sqrt', '\\inf': 'inf',
+        '\\alpha': 'alpha', '\\beta': 'beta', '\\Delta': 'Delta',
+        '\\gamma': 'gamma', '\\lambda': 'lambda', '\\mu': 'mu',
+        '\\phi': 'phi', '\\pi': 'pi', '\\sigma': 'sigma',
+        '\\Sigma': 'Sigma', '\\sum': 'sum', '\\Pi':'Pi', '\\theta': 'theta'}
 
 class MathExp(Base):
     __tablename__ = "MathExp"
@@ -49,9 +58,9 @@ class MathExp(Base):
     def _internal_loop(self, _cur, sym_li):
         while len(sym_li) != 0:
             _next = sym_li.pop(0)
-            print _cur, _next
             location = _next.location(_cur)
             self._internal_loop(_next, sym_li)
+            print _next
             if location in [0, 1, -1]:
                 _cur.next.append((location, _next))
             else:
@@ -60,6 +69,8 @@ class MathExp(Base):
         return True
 
     def fixup(self):
+        if 'frac' in self.tex:
+            return
         _cur = self.res.pop(0)
         if self._internal_loop(_cur, self.res):
             self.tex = _cur.gen_tex()
@@ -74,8 +85,49 @@ class MathExp(Base):
     def make_unshare(self):
         self.shared = False
 
+
     def make_hangul(self):
-        return 'Todo'
+        hangul = self.tex
+        while '\\frac' in hangul:
+            groups = []
+            first = hangul.find('\\frac')
+            groups.append(hangul[:first])
+
+            hangul = hangul[first + 5:]
+            st = hangul.index('{')
+            obc = 0
+            ed = st
+            while True:
+                if hangul[ed] == '{' and (ed -1 <= st or hangul[ed - 1] != '\\'):
+                    obc += 1
+                elif hangul[ed] == '}' and (ed - 1 <= st or hangul[ed - 1] != '\\'):
+                    obc -= 1
+                    if obc == 0:
+                        break
+                ed += 1
+            groups.append(hangul[st:ed + 1])
+
+            hangul = hangul[ed + 1:]
+            st = hangul.index('{')
+            obc = 0
+            ed = st
+            while True:
+                if hangul[ed] == '{' and (ed -1 <= st or hangul[ed - 1] != '\\'):
+                    obc += 1
+                elif hangul[ed] == '}' and (ed - 1 <= st or hangul[ed - 1] != '\\'):
+                    obc -= 1
+                    if obc == 0:
+                        break
+                ed += 1
+            groups.append(hangul[st:ed + 1])
+
+            groups.append(hangul[ed + 1:])
+
+            hangul = groups[0] + groups[1] + 'over' + groups[2] + groups[3]
+
+        for k in hangul_map.keys():
+            hangul = hangul.replace(k, ' {} '.format(hangul_map[k]))
+        return hangul
 
     def make_word(self):
         return 'Todo'

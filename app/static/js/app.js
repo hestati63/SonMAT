@@ -368,7 +368,7 @@ class Show extends React.Component {
         <hr />
         <Panel header="Tex" bsStyle="primary">{res['tex']}</Panel><br />
         <Panel header="Hangul" bsStyle="info">{res['hangul']}</Panel><br />
-        <Panel header="Word" bsStyle="warning">{res['word']}</Panel><br />
+        <Panel header="Word" bsStyle="warning"><img src={"http://latex.codecogs.com/gif.latex?" + res['tex']} border="0"/></Panel><br />
       </Col>
     );
   }

@@ -116,7 +116,7 @@ def show(idx):
 
     user = get_user()
     if exp and \
-        ((user != None and exp.owner.id == user.id) or exp.is_shared()) :
+        (idx == 0 or (user != None and exp.owner.id == user.id) or exp.is_shared()) :
         return exp.jsonfy();
     return json.dumps({'msg': -1})
 

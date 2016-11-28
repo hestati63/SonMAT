@@ -18,6 +18,7 @@ class User(Base):
         self.username = _username
         self.set_password(_password)
         self.email    = _email
+        self.Exps = []
 
     def __repr__(self):
         return "<User: {}>".format(self.username)

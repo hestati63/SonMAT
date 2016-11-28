@@ -23,12 +23,20 @@ var FormControl = ReactBootstrap.FormControl;
 
 var LinkContainer = ReactRouterBootstrap.LinkContainer;
 
-// temp values.
-var is_login = 0;
+
+var is_login = -1;
+var base = 123;
 class App extends React.Component {
    constructor(props) {
      super(props);
-     this.state = {si_show: false, su_show: false};
+     base = this;
+     var res = $.ajax({
+               type: "GET",
+               url: '/api/check',
+               async: false
+           }).responseText;
+    res = JSON.parse(res);
+    base.state = {si_show: false, su_show: false, is_login: res['msg']};
    };
 
   render() {
@@ -43,7 +51,7 @@ class App extends React.Component {
           toastr.error(msg);
         } else if (msg != "-1") {
           toastr.success(msg);
-          is_login = 1;
+          base.setState({is_login: 1});
           si_close();
         }
       });
@@ -160,7 +168,7 @@ class App extends React.Component {
             </Nav>
             <Nav pullRight>
               <NavItem eventKey={5} onSelect={() => this.setState({si_show: true})}>Mypage</NavItem>
-              <NavItem eventKey={6} onSelect={() => this.setState({su_show: true})}>Logout</NavItem>
+              <NavItem eventKey={6} onSelect={() => {$.get('/api/logout').done(function(data){toastr.info(JSON.parse(data)['msg'])});this.setState({is_login: 0})}}>Logout</NavItem>
             </Nav>
           </Navbar.Collapse>
         </Navbar>
@@ -168,7 +176,7 @@ class App extends React.Component {
       </div>
     );
 
-    return is_login ? logined : requirelogin;
+    return this.state.is_login ? logined : requirelogin;
   }
 }
 
@@ -421,6 +429,7 @@ var EquationGal = React.createClass({
         toastr.error(result['msg']);
       } else {
         toastr.success(result['msg']);
+        browserHistory.push('myEquation');
       }
     });
   },
@@ -496,16 +505,6 @@ class MyEquation extends React.Component {
   }
 }
 
-// signin
-// signup
-// mypage
-// logout
-function logout(nextState, replaceState) {
-  // $.post("api/logout");
-  alert("succesfully logged out");
-  is_login = false;
-  replaceState({ nextPathname: nextState.location.pathname }, '/')
-}
 
 ReactDOM.render(
   <Router history = {browserHistory}>
@@ -516,7 +515,6 @@ ReactDOM.render(
       <Route path = "NewEquation" component = {NewEquation} />
       <Route path = "MyEquation" component = {MyEquation} />
       <Route path = "show" component = {Show} />
-      <Route path = "logout" component = {None} onEnter={logout} />
     </Route>
   </Router>,
   document.getElementById('content')

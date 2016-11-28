@@ -24,8 +24,8 @@ def send_img(path):
 
 ''' ===== API DEFINED FROM HERE ===== '''
 def get_user():
-    return session['user'] \
-            if 'user' in session.keys() else None
+    return User.query.get(session['uid']) \
+            if 'uid' in session.keys() else None
 
 
 def parse_seshat(strokes, seshat_output):
@@ -100,17 +100,25 @@ def create_equation():
     seshat_obj = parse_seshat(strokes, seshat_output)
     exp = MathExp(seshat_obj)
     exp.name = "Result"
-    exp.owner = get_user()
     exp.fixup()
-    print seshat_obj['latex'], exp.tex
-    session['exp'] = exp
+    db_session.add(exp)
+    db_session.commit()
+
+    if 'exp' in session.keys()\
+            and session['exp'] != None:
+                DExp = MathExp.query.get(session['exp'])
+                if DExp.owner == None:
+                    db_session.delete(DExp)
+                    db_session.commit()
+    session['exp'] = exp.id
+
     msg = seshat_obj['latex']
     return json.dumps({'res': 1, 'msg': msg, 'fix': exp.tex})
 
 @frontend.route("/api/show/<int:idx>")
 def show(idx):
     if idx == 0:
-        exp = session['exp']
+        exp = MathExp.query.get(session['exp'])
     else:
         exp = MathExp.query.get(idx)
 
@@ -126,11 +134,10 @@ def save():
     if user == None:
         return json.dumps({'res': -1, 'msg': "You're not logged in."})
     if 'exp' in session.keys() and session['exp'] != None:
-        user = session['user']
-        exp  = session['exp']
-        db_session.add(exp)
-        db_session.commit()
+        exp = MathExp.query.get(session['exp'])
+        exp.owner = user
         user.Exps.append(exp)
+        db_session.add(exp)
         db_session.add(user)
         db_session.commit()
         return json.dumps({'res': exp.id, 'msg': 'Successfully saved.'})
@@ -185,15 +192,17 @@ def signin():
     else:
         user = User.query.filter_by(username = username).first()
         if user and user.check_password(password):
-            session['user'] = user
+            session['uid'] = user.id
             return json.dumps({'msg': 'welcome back {}.'.format(username)})
         else:
             return json.dumps({'msg': 'login fail'})
 
 @frontend.route("/api/logout")
 def logout():
-    session['user'] = None
-    session['exp']  = None
+    if 'uid' in session.keys():
+        session.pop('uid')
+    if 'exp' in session.keys():
+        session.pop('exp')
     return json.dumps({'msg': 'bye'})
 
 @frontend.route("/api/signup", methods=["POST"])
@@ -249,3 +258,7 @@ def listing():
                         'shared': Exp.shared})
         return json.dumps({'msg': 1, 'data': val})
     return json.dumps({'msg': -1})
+
+@frontend.route("/api/check")
+def check():
+    return json.dumps({'msg': 0 if get_user() == None else 1})

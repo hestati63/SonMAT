@@ -54,6 +54,7 @@ class MathExp(Base):
         self.res = _res['symbols']
         self.tex = _res['latex']
         sorted(self.res, key = lambda x: x.idx)
+        self.shared = False
 
     def _internal_loop(self, _cur, sym_li):
         while len(sym_li) != 0:
@@ -137,7 +138,8 @@ class MathExp(Base):
                'tex'   : self.tex,
                'hangul': self.make_hangul(),
                'word'  : self.make_word(),
-               'name'  : self.name}
+               'name'  : self.name,
+               'shared': self.shared}
         return json.dumps(res)
 
 def init_db():

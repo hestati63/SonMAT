@@ -307,10 +307,25 @@ class Show extends React.Component {
     });
   }
 
-  renderShareOrSaveButton(idx) {
-    if (idx == "0") {
+  onUnshare(idx) {
+    $.post("/api/unshare/" + idx).done(function(data) {
+      var result = JSON.parse(data);
+      if (result['res'] == -1) {
+        toastr.error(result['msg']);
+      } else {
+        toastr.success(result['msg']);
+      }
+    });
+  }
+
+  renderShareOrSaveButton(idx, exp) {
+    if (idx == '0') {
       return (
         <Button bsStyle="mstyle" onClick={this.onSave}>save</Button>
+      );
+    } else if (exp['shared']) {
+      return (
+        <Button bsStyle="mstyle" onClick={this.onUnshare.bind(this, idx)}>unshare</Button>
       );
     } else {
       return (
@@ -340,15 +355,15 @@ class Show extends React.Component {
       <Col xs={10} xsOffset={1}>
         <PageHeader id="name">
           <Col xs={6}>
-            {res ? res['name'] : ''}
+            {res['name']}
           </Col>
           <Col xs={6} id="btns" className="text-right">
-            {this.renderShareOrSaveButton(idx)}
+            {this.renderShareOrSaveButton(idx, res)}
           </Col>
         </PageHeader>
         <Label bsStyle="success">Converted Result</Label><br />
         <div id="Eq">
-          {res ? '$$' + res['tex'] + '$$' : ''}
+          {'$$' + res['tex'] + '$$'}
         </div>
         <hr />
         <Panel header="Tex" bsStyle="primary">{res['tex']}</Panel><br />
@@ -361,6 +376,67 @@ class Show extends React.Component {
 
 // my equation
 var EquationGal = React.createClass({
+  getInitialState: function() {
+    return {
+      shared: this.props.shared
+    };
+  },
+
+  componentWillReceiveProps: function(nextProps) {
+    this.setState({
+      shared: nextProps.shared
+    });
+  },
+
+  onShare: function() {
+    var self = this;
+    $.post("/api/share/" + this.props.idx).done(function(data) {
+      var result = JSON.parse(data);
+      if (result['res'] == -1) {
+        toastr.error(result['msg']);
+      } else {
+        toastr.success(result['msg']);
+        self.setState({shared: !self.state.shared});
+      }
+    });
+  },
+
+  onUnshare: function() {
+    var self = this;
+    $.post("/api/unshare/" + this.props.idx).done(function(data) {
+      var result = JSON.parse(data);
+      if (result['res'] == -1) {
+        toastr.error(result['msg']);
+      } else {
+        toastr.success(result['msg']);
+        self.setState({shared: !self.state.shared});
+      }
+    });
+  },
+
+  onDelete: function() {
+    $.post("/api/delete/" + this.props.idx).done(function(data) {
+      var result = JSON.parse(data);
+      if (result['res'] == -1) {
+        toastr.error(result['msg']);
+      } else {
+        toastr.success(result['msg']);
+      }
+    });
+  },
+
+  renderShareButton: function() {
+    if (this.state.shared) {
+      return (
+        <Button bsStyle="info" onClick={this.onUnshare}>Unshare</Button>
+      );
+    } else {
+      return (
+        <Button bsStyle="info" onClick={this.onShare}>Share</Button>
+      );
+    }
+  },
+
   render: function() {
     return (
       <Col xs={6} md={4}>
@@ -372,13 +448,9 @@ var EquationGal = React.createClass({
               <Button bsStyle="primary">Show</Button>
             </LinkContainer>
             &nbsp;
-            <LinkContainer to={"share#" + this.props.idx}>
-              <Button bsStyle="info">Share</Button>
-            </LinkContainer>
+            {this.renderShareButton()}
             &nbsp;
-            <LinkContainer to={"delete#" + this.props.idx}>
-              <Button bsStyle="danger">Delete</Button>
-            </LinkContainer>
+            <Button bsStyle="danger" onClick={this.onDelete}>Delete</Button>
           </p>
         </div>
       </Col>
@@ -395,9 +467,9 @@ class MyEquation extends React.Component {
     MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
   }
 
-  renderEquation(exp, i) {
+  renderEquation(exp) {
     return (
-      <EquationGal name={exp.name} val={exp.tex} idx={i} />
+      <EquationGal name={exp.name} val={exp.tex} idx={exp.id} shared={exp.shared} />
     );
   }
 
@@ -415,8 +487,8 @@ class MyEquation extends React.Component {
     return (
       <Row>
         <Col xs={10} xsOffset={1}>
-          {res['data'].map((exp, i) => {
-            return this.renderEquation(exp, i);
+          {res['data'].map((exp) => {
+            return this.renderEquation(exp);
           })}
         </Col>
       </Row>

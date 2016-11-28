@@ -141,14 +141,14 @@ def delete(idx):
     exp = MathExp.query.get(idx)
     user = get_user()
     if user == None:
-        return json.dumps({'msg': -1})
+        return json.dumps({'res': -1, 'msg': "You're not logged in."})
     if exp and exp.owner.id == user.id:
         user.Exps.remove(exp)
         db_session.add(user)
         db_session.delete(exp)
         db_session.commit()
-        return json.dumps({'msg': 1})
-    return json.dumps({'msg': -1})
+        return json.dumps({'res': 1, 'msg': 'Successfully deleted.'})
+    return json.dumps({'res': -1, 'msg': 'Delete failed.'})
 
 @frontend.route("/api/share/<int:idx>", methods=['POST'])
 def share(idx):
@@ -162,6 +162,19 @@ def share(idx):
         db_session.commit()
         return json.dumps({'res': 1, 'msg': 'Now you can share the link.'})
     return json.dumps({'res': -1, 'msg': 'Share failed.'})
+
+@frontend.route("/api/unshare/<int:idx>", methods=['POST'])
+def unshare(idx):
+    exp = MathExp.query.get(idx)
+    user = get_user()
+    if user == None:
+        return json.dumps({'res': -1, 'msg': "You're not logged in."})
+    if exp and exp.owner.id == user.id:
+        exp.make_unshare()
+        db_session.add(exp)
+        db_session.commit()
+        return json.dumps({'res': 1, 'msg': 'Now this link is private.'})
+    return json.dumps({'res': -1, 'msg': 'Unshare failed.'})
 
 @frontend.route("/api/signin", methods=["POST"])
 def signin():
@@ -230,6 +243,9 @@ def listing():
     if user != None:
         val = list()
         for Exp in user.Exps:
-            val.append({'name': Exp.name, 'tex': Exp.tex})
+            val.append({'id': Exp.id,
+                        'name': Exp.name,
+                        'tex': Exp.tex,
+                        'shared': Exp.shared})
         return json.dumps({'msg': 1, 'data': val})
     return json.dumps({'msg': -1})

@@ -20,9 +20,10 @@ var Label = ReactBootstrap.Label;
 var Thumbnail = ReactBootstrap.Thumbnail;
 var ControlLabel = ReactBootstrap.ControlLabel;
 var FormControl = ReactBootstrap.FormControl;
-
+var Popover = ReactBootstrap.Popover;
+var OverlayTrigger = ReactBootstrap.OverlayTrigger;
+var FormGroup = ReactBootstrap.FormGroup;
 var LinkContainer = ReactRouterBootstrap.LinkContainer;
-
 
 var is_login = -1;
 var base = 123;
@@ -283,6 +284,23 @@ class NewEquation extends React.Component {
 
 // show
 class Show extends React.Component {
+  constructor(props){
+    super(props);
+    var idx = window.location.hash.split('#')[1];
+    if (idx == undefined || !/^\d+$/.test(idx))
+      idx = "0";
+    var data = $.ajax({
+       url: "/api/show/" + idx,
+       type: 'get',
+       dataType: 'html',
+       async: false,
+    }).responseText;
+    var res = JSON.parse(data);
+    if (res['msg'] == -1) {
+      browserHistory.push(-1);
+    }
+    this.state = {res: res, idx: idx, sst: 0};
+  }
   componentDidMount() {
     MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
   }
@@ -291,14 +309,15 @@ class Show extends React.Component {
     MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
   }
 
-  onSave() {
-    $.post("/api/save").done(function(data) {
+  onSave(_this) {
+    $.post("/api/save", {'name': $("#saveEqName").val()}).done(function(data) {
       var result = JSON.parse(data);
       if (result['res'] == -1) {
         toastr.error(result['msg']);
       } else {
         toastr.success(result['msg']);
         var expId = result['res'];
+        _this.setState({idx: expId});
         browserHistory.push('show#' + expId);
       }
     });
@@ -326,10 +345,30 @@ class Show extends React.Component {
     });
   }
 
+  sfunc(_this){
+    if(_this.state.sst == 0){
+      _this.setState({sst: 1});
+    }
+    else if(_this.state.sst == 1){
+      _this.onSave(_this);
+    }
+  }
+
   renderShareOrSaveButton(idx, exp) {
+    const popoverBottom = (
+      <Popover id="popover-positioned-bottom" title="Enter Title">
+        <FormGroup>
+          <FormControl type="text" placeholder="Title" id="saveEqName"/>
+        </FormGroup>
+      </Popover>
+    )
+
     if (idx == '0') {
+
       return (
-        <Button bsStyle="mstyle" onClick={this.onSave}>save</Button>
+        <OverlayTrigger trigger="click" placement="bottom" overlay={popoverBottom}>
+          <Button bsStyle="mstyle" onClick={this.sfunc.bind(this, this)}>save</Button>
+        </OverlayTrigger>
       );
     } else if (exp['shared']) {
       return (
@@ -343,22 +382,9 @@ class Show extends React.Component {
   }
 
   render() {
-    var idx = window.location.hash.split('#')[1];
-    if (idx == undefined || !/^\d+$/.test(idx))
-      idx = "0";
-    var res = null;
-    $.ajax({
-       url: "/api/show/" + idx,
-       type: 'get',
-       dataType: 'html',
-       async: false,
-       success: function(data) {
-         res = JSON.parse(data);
-       }
-    });
-    if (res['msg'] == -1) {
-      browserHistory.push(-1);
-    }
+    var res = this.state.res;
+    var idx = this.state.idx;
+    console.log(idx);
     return (
       <Col xs={10} xsOffset={1}>
         <PageHeader id="name">

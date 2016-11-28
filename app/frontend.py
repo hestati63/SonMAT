@@ -134,8 +134,10 @@ def save():
     if user == None:
         return json.dumps({'res': -1, 'msg': "You're not logged in."})
     if 'exp' in session.keys() and session['exp'] != None:
+        Eqname = request.form['name']
         exp = MathExp.query.get(session['exp'])
         exp.owner = user
+        exp.name = Eqname
         user.Exps.append(exp)
         db_session.add(exp)
         db_session.add(user)

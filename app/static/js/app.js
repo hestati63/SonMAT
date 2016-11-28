@@ -277,14 +277,51 @@ class NewEquation extends React.Component {
 class Show extends React.Component {
   componentDidMount() {
     MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
-  };
+  }
+
   componentDidUpdate() {
     MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
-  };
+  }
+
+  onSave() {
+    $.post("/api/save").done(function(data) {
+      var result = JSON.parse(data);
+      if (result['res'] == -1) {
+        toastr.error(result['msg']);
+      } else {
+        toastr.success(result['msg']);
+        var expId = result['res'];
+        browserHistory.push('show#' + expId);
+      }
+    });
+  }
+
+  onShare(idx) {
+    $.post("/api/share/" + idx).done(function(data) {
+      var result = JSON.parse(data);
+      if (result['res'] == -1) {
+        toastr.error(result['msg']);
+      } else {
+        toastr.success(result['msg']);
+      }
+    });
+  }
+
+  renderShareOrSaveButton(idx) {
+    if (idx == "0") {
+      return (
+        <Button bsStyle="mstyle" onClick={this.onSave}>save</Button>
+      );
+    } else {
+      return (
+        <Button bsStyle="mstyle" onClick={this.onShare.bind(this, idx)}>share</Button>
+      );
+    }
+  }
 
   render() {
     var idx = window.location.hash.split('#')[1];
-    if(idx == undefined || idx.isdigit() != True)
+    if (idx == undefined || !/^\d+$/.test(idx))
       idx = "0";
     var res = null;
     $.ajax({
@@ -300,17 +337,15 @@ class Show extends React.Component {
       <Col xs={10} xsOffset={1}>
         <PageHeader id="name">
           <Col xs={6}>
-            {res['name']}
+            {res ? res['name'] : ''}
           </Col>
           <Col xs={6} id="btns" className="text-right">
-            <Button bsStyle="mstyle">share</Button>
-            &nbsp;
-            <Button bsStyle="mstyle">save</Button>
+            {this.renderShareOrSaveButton(idx)}
           </Col>
         </PageHeader>
         <Label bsStyle="success">Converted Result</Label><br />
         <div id="Eq">
-          {'$$' + res['tex'] + '$$'}
+          {res ? '$$' + res['tex'] + '$$' : ''}
         </div>
         <hr />
         <Panel header="Tex" bsStyle="primary">{res['tex']}</Panel><br />
@@ -351,17 +386,35 @@ var EquationGal = React.createClass({
 class MyEquation extends React.Component {
   componentDidMount() {
     MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
-  };
+  }
+
   componentDidUpdate() {
     MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
-  };
+  }
+
+  renderEquation(exp, i) {
+    return (
+      <EquationGal name={exp.name} val={exp.tex} idx={idx} />
+    );
+  }
 
   render() {
+    var res = null;
+    $.ajax({
+       url: "/api/listing",
+       type: 'get',
+       dataType: 'html',
+       async: false,
+       success: function(data) {
+         res = JSON.parse(data);
+       }
+    });
     return (
       <Row>
         <Col xs={10} xsOffset={1}>
-          <EquationGal name="MyEquation" val="2+1" idx={1}></EquationGal>
-          <EquationGal name="Calculus1" val="1+2" idx={2}></EquationGal>
+          {res['data'].map((exp, i) => {
+            return this.renderEquation(exp, i);
+          })}
         </Col>
       </Row>
     );

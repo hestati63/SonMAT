@@ -100,6 +100,7 @@ def create_equation():
     seshat_obj = parse_seshat(strokes, seshat_output)
     exp = MathExp(seshat_obj)
     exp.name = "Result"
+    exp.owner = get_user()
     exp.fixup()
     print seshat_obj['latex'], exp.tex
     session['exp'] = exp
@@ -111,35 +112,37 @@ def show(idx):
     if idx == 0:
         exp = session['exp']
     else:
-        #exp = MathExp.query.filter_by(id = idx).first()
-        ''' Temporal input'''
-        exp.make_share()
+        exp = MathExp.query.get(idx)
 
     user = get_user()
     if exp and \
-        (exp.owner == user or exp.is_shared()) :
+        ((user != None and exp.owner.id == user.id) or exp.is_shared()) :
         return exp.jsonfy();
     return json.dumps({'msg': -1})
 
-@frontend.route("/api/save")
+@frontend.route("/api/save", methods=['POST'])
 def save():
     user = get_user()
-    if get_user() != None \
-        and 'exp' in session.keys() and session['exp'] != None:
-            user = session['user']
-            exp  = session['exp']
-            db_session.add(exp)
-            db_session.commit()
-            user.Exps.append(exp)
-            db_session.add(user)
-            db_session.commit()
-            return json.dumps({'msg': exp.id})
+    if user == None:
+        return json.dumps({'res': -1, 'msg': "You're not logged in."})
+    if 'exp' in session.keys() and session['exp'] != None:
+        user = session['user']
+        exp  = session['exp']
+        db_session.add(exp)
+        db_session.commit()
+        user.Exps.append(exp)
+        db_session.add(user)
+        db_session.commit()
+        return json.dumps({'res': exp.id, 'msg': 'Successfully saved.'})
+    return json.dumps({'res': -1, 'msg': 'Save failed.'})
 
-@frontend.route("/api/delete/<int:idx>")
+@frontend.route("/api/delete/<int:idx>", methods=['POST'])
 def delete(idx):
-    exp = MathExp.query.filter_by(id = idx).first()
+    exp = MathExp.query.get(idx)
     user = get_user()
-    if exp and exp.owner == user:
+    if user == None:
+        return json.dumps({'msg': -1})
+    if exp and exp.owner.id == user.id:
         user.Exps.remove(exp)
         db_session.add(user)
         db_session.delete(exp)
@@ -147,16 +150,18 @@ def delete(idx):
         return json.dumps({'msg': 1})
     return json.dumps({'msg': -1})
 
-@frontend.route("/api/share/<int:idx>")
+@frontend.route("/api/share/<int:idx>", methods=['POST'])
 def share(idx):
-    exp = MathExp.query.filter_by(id = idx).first()
+    exp = MathExp.query.get(idx)
     user = get_user()
-    if exp and exp.owner == user:
+    if user == None:
+        return json.dumps({'res': -1, 'msg': "You're not logged in."})
+    if exp and exp.owner.id == user.id:
         exp.make_share()
         db_session.add(exp)
         db_session.commit()
-        return json.dumps({'msg': 1})
-    return json.dumps({'msg': -1})
+        return json.dumps({'res': 1, 'msg': 'Now you can share the link.'})
+    return json.dumps({'res': -1, 'msg': 'Share failed.'})
 
 @frontend.route("/api/signin", methods=["POST"])
 def signin():
@@ -222,7 +227,7 @@ def mypage():
 @frontend.route("/api/listing")
 def listing():
     user = get_user()
-    if user == None:
+    if user != None:
         val = list()
         for Exp in user.Exps:
             val.append({'name': Exp.name, 'tex': Exp.tex})

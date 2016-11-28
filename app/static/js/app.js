@@ -394,7 +394,7 @@ class MyEquation extends React.Component {
 
   renderEquation(exp, i) {
     return (
-      <EquationGal name={exp.name} val={exp.tex} idx={idx} />
+      <EquationGal name={exp.name} val={exp.tex} idx={i} />
     );
   }
 

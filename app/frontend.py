@@ -234,9 +234,9 @@ def signup():
 def mypage():
     user = get_user()
     if user != None:
-        curpassword = request.form['curpassword']
-        password    = request.form['password']
-        passwordchk = request.form['passwordchk']
+        curpassword = request.form['password']
+        password    = request.form['npassword']
+        passwordchk = request.form['npasswordchk']
         if user.check_password(curpassword):
             if password == passwordchk:
                 if len(password) < 4:
@@ -244,6 +244,7 @@ def mypage():
                 user.set_password(password)
                 db_session.add(user)
                 db_session.commit()
+                return json.dumps({'msg': 'Successfully saved.'})
             else:
                 return json.dumps({'msg': 'password check fail.'})
         return json.dumps({'msg': 'wrong current password'})

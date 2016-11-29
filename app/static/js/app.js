@@ -38,12 +38,13 @@ class App extends React.Component {
                async: false
            }).responseText;
     res = JSON.parse(res);
-    base.state = {si_show: false, su_show: false, is_login: res['msg']};
+    base.state = {si_show: false, su_show: false, my_show: false, is_login: res['msg']};
    };
 
   render() {
     let si_close = () => this.setState({si_show: false});
     let su_close = () => this.setState({su_show: false});
+    let my_close = () => this.setState({my_show: false});
     let si_click = function() {
       $.post(prefix + "api/signin", {"username": $("#Iusername").val(),
         "password": $("#Ipasswd").val()
@@ -73,6 +74,23 @@ class App extends React.Component {
         }
       });
     };
+
+    let my_click = function() {
+      $.post(prefix + "api/mypage",
+        {"password": $("#Mpasswd").val(),
+         "npassword": $("#Mupasswd").val(),
+         "npasswordchk": $("#Mupasswdchk").val()}
+      ).done(function(data) {
+        var msg = JSON.parse(data)['msg'];
+        if (msg == "Successfully saved.") {
+          toastr.success(msg);
+          my_close();
+        } else if (msg != -1) {
+          toastr.error(msg);
+        }
+      });
+    };
+
 
     var requirelogin = (
       <div>
@@ -169,11 +187,29 @@ class App extends React.Component {
 
             </Nav>
             <Nav pullRight>
-              <NavItem eventKey={5} onSelect={() => this.setState({si_show: true})}>Mypage</NavItem>
-              <NavItem eventKey={6} onSelect={() => {$.get(prefix + 'api/logout').done(function(data){toastr.info(JSON.parse(data)['msg'])});this.setState({is_login: 0})}}>Logout</NavItem>
+              <NavItem eventKey={5} onSelect={() => this.setState({my_show: true})}>Mypage</NavItem>
+              <NavItem eventKey={6} onSelect={() => {$.get(prefix + 'api/logout').done(function(data){toastr.success(JSON.parse(data)['msg'])});this.setState({is_login: 0})}}>Logout</NavItem>
             </Nav>
           </Navbar.Collapse>
         </Navbar>
+        <Modal show={this.state.my_show} onHide={my_close}>
+          <form onSubmit={e => e.preventDefault()}>
+            <Modal.Header closeButton>
+              <Modal.Title><h2>Mypage</h2></Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+              <ControlLabel>Current Password</ControlLabel>
+              <FormControl type="password" placeholder="Enter Password" id="Mpasswd" />
+              <ControlLabel>Change Password</ControlLabel>
+              <FormControl type="password" placeholder="Enter New Password" id="Mupasswd" />
+              <ControlLabel>Password Check</ControlLabel>
+              <FormControl type="password" placeholder="Reenter New Password" id="Mupasswdchk" />
+            </Modal.Body>
+            <Modal.Footer>
+              <Button type="submit" onClick={my_click}>Save</Button>
+            </Modal.Footer>
+          </form>
+        </Modal>
         {this.props.children}
       </div>
     );

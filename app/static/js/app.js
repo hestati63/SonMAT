@@ -27,13 +27,14 @@ var LinkContainer = ReactRouterBootstrap.LinkContainer;
 
 var is_login = -1;
 var base = 123;
+var prefix = '/sonmat/';
 class App extends React.Component {
    constructor(props) {
      super(props);
      base = this;
      var res = $.ajax({
                type: "GET",
-               url: '/api/check',
+               url: prefix + 'api/check',
                async: false
            }).responseText;
     res = JSON.parse(res);
@@ -44,7 +45,7 @@ class App extends React.Component {
     let si_close = () => this.setState({si_show: false});
     let su_close = () => this.setState({su_show: false});
     let si_click = function() {
-      $.post("/api/signin", {"username": $("#Iusername").val(),
+      $.post(prefix + "api/signin", {"username": $("#Iusername").val(),
         "password": $("#Ipasswd").val()
       }).done(function(data) {
         var msg = JSON.parse(data)['msg'];
@@ -58,7 +59,7 @@ class App extends React.Component {
       });
     };
     let su_click = function() {
-      $.post("/api/signup", {"username": $("#Uusername").val(),
+      $.post(prefix + "api/signup", {"username": $("#Uusername").val(),
         "password": $("#Upasswd").val(),
         "passwordchk": $("#Upasswdchk").val(),
         "email": $("#Uemail").val()}
@@ -78,19 +79,19 @@ class App extends React.Component {
         <Navbar id="nav">
           <Navbar.Header>
             <Navbar.Brand>
-              <img src="/images/logo.png" />
+              <img src= {prefix + "images/logo.png"} />
             </Navbar.Brand>
             <Navbar.Toggle />
           </Navbar.Header>
           <Navbar.Collapse>
             <Nav>
-              <LinkContainer to='home'>
+              <LinkContainer to={prefix + 'home'}>
                 <NavItem eventkey={1}>Home</NavItem>
               </LinkContainer>
-              <LinkContainer to='about'>
+              <LinkContainer to={prefix + 'about'}>
                 <NavItem eventkey={2}>About</NavItem>
               </LinkContainer>
-              <LinkContainer to='NewEquation'>
+              <LinkContainer to={prefix + 'NewEquation'}>
                 <NavItem eventKey={3}>New Equation</NavItem>
               </LinkContainer>
             </Nav>
@@ -147,29 +148,29 @@ class App extends React.Component {
         <Navbar id="nav">
           <Navbar.Header>
             <Navbar.Brand>
-            <img src="/images/logo.png" />
+              <img src= {prefix + "images/logo.png"} />
             </Navbar.Brand>
             <Navbar.Toggle />
           </Navbar.Header>
           <Navbar.Collapse>
             <Nav>
-              <LinkContainer to='home'>
+              <LinkContainer to={prefix + 'home'}>
                 <NavItem eventkey={1}>Home</NavItem>
               </LinkContainer>
-              <LinkContainer to='about'>
+              <LinkContainer to={prefix + 'about'}>
                 <NavItem eventkey={2}>About</NavItem>
               </LinkContainer>
-              <LinkContainer to='NewEquation'>
+              <LinkContainer to={prefix + 'NewEquation'}>
                 <NavItem eventKey={3}>New Equation</NavItem>
               </LinkContainer>
-              <LinkContainer to='MyEquation'>
+              <LinkContainer to={prefix + 'MyEquation'}>
                 <NavItem eventKey={4}>MyEquation</NavItem>
               </LinkContainer>
 
             </Nav>
             <Nav pullRight>
               <NavItem eventKey={5} onSelect={() => this.setState({si_show: true})}>Mypage</NavItem>
-              <NavItem eventKey={6} onSelect={() => {$.get('/api/logout').done(function(data){toastr.info(JSON.parse(data)['msg'])});this.setState({is_login: 0})}}>Logout</NavItem>
+              <NavItem eventKey={6} onSelect={() => {$.get(prefix + 'api/logout').done(function(data){toastr.info(JSON.parse(data)['msg'])});this.setState({is_login: 0})}}>Logout</NavItem>
             </Nav>
           </Navbar.Collapse>
         </Navbar>
@@ -197,7 +198,7 @@ class Home extends React.Component {
           <div id="jt">
             <h1>SonMat</h1>
             <p>This is a simple handwriting formula IME service based on <a target="_blank" href="https://github.com/falvaro/seshat">seshat</a>.</p>
-            <p><LinkContainer to="NewEquation"><Button bsStyle="primary">Try it</Button></LinkContainer></p>
+            <p><LinkContainer to={prefix + "NewEquation"}><Button bsStyle="primary">Try it</Button></LinkContainer></p>
           </div>
         </Jumbotron>
       </Col>
@@ -235,14 +236,14 @@ class NewEquation extends React.Component {
         }
       }
 
-      $.post('/api/new', { 'strokes': JSON.stringify(strokes) },
+      $.post(prefix + 'api/new', { 'strokes': JSON.stringify(strokes) },
         function(data) {
           var res = JSON.parse(data);
           if(res['res'] == 1)
           {
             console.log(res['msg']);
             //console.log(res['fix']);
-            browserHistory.push('show');
+            browserHistory.push(prefix+'show');
           }
           else
           {
@@ -290,7 +291,7 @@ class Show extends React.Component {
     if (idx == undefined || !/^\d+$/.test(idx))
       idx = "0";
     var data = $.ajax({
-       url: "/api/show/" + idx,
+       url: prefix + "api/show/" + idx,
        type: 'get',
        dataType: 'html',
        async: false,
@@ -310,7 +311,7 @@ class Show extends React.Component {
   }
 
   onSave(_this) {
-    $.post("/api/save", {'name': $("#saveEqName").val()}).done(function(data) {
+    $.post(prefix + "api/save", {'name': $("#saveEqName").val()}).done(function(data) {
       var result = JSON.parse(data);
       if (result['res'] == -1) {
         toastr.error(result['msg']);
@@ -318,29 +319,36 @@ class Show extends React.Component {
         toastr.success(result['msg']);
         var expId = result['res'];
         _this.setState({idx: expId});
-        browserHistory.push('show#' + expId);
+        browserHistory.push(prefix+'show#' + expId);
       }
     });
   }
 
-  onShare(idx) {
-    $.post("/api/share/" + idx).done(function(data) {
+  onShare(idx, _this) {
+    $.post(prefix + "api/share/" + idx).done(function(data) {
+      var result = JSON.parse(data);
+      if (result['res'] == -1) {
+
+        toastr.error(result['msg']);
+      } else {
+        toastr.success(result['msg']);
+        var res = _this.state.res;
+        res['shared'] = true;
+        _this.setState({res: res});
+      }
+    });
+  }
+
+  onUnshare(idx, _this) {
+    $.post(prefix + "api/unshare/" + idx).done(function(data) {
       var result = JSON.parse(data);
       if (result['res'] == -1) {
         toastr.error(result['msg']);
       } else {
         toastr.success(result['msg']);
-      }
-    });
-  }
-
-  onUnshare(idx) {
-    $.post("/api/unshare/" + idx).done(function(data) {
-      var result = JSON.parse(data);
-      if (result['res'] == -1) {
-        toastr.error(result['msg']);
-      } else {
-        toastr.success(result['msg']);
+        var res = _this.state.res;
+        res['shared'] = false;
+        _this.setState({res: res});
       }
     });
   }
@@ -372,11 +380,11 @@ class Show extends React.Component {
       );
     } else if (exp['shared']) {
       return (
-        <Button bsStyle="mstyle" onClick={this.onUnshare.bind(this, idx)}>unshare</Button>
+        <Button bsStyle="mstyle" onClick={this.onUnshare.bind(this, idx, this)}>unshare</Button>
       );
     } else {
       return (
-        <Button bsStyle="mstyle" onClick={this.onShare.bind(this, idx)}>share</Button>
+        <Button bsStyle="mstyle" onClick={this.onShare.bind(this, idx, this)}>share</Button>
       );
     }
   }
@@ -424,7 +432,7 @@ var EquationGal = React.createClass({
 
   onShare: function() {
     var self = this;
-    $.post("/api/share/" + this.props.idx).done(function(data) {
+    $.post(prefix + "api/share/" + this.props.idx).done(function(data) {
       var result = JSON.parse(data);
       if (result['res'] == -1) {
         toastr.error(result['msg']);
@@ -437,7 +445,7 @@ var EquationGal = React.createClass({
 
   onUnshare: function() {
     var self = this;
-    $.post("/api/unshare/" + this.props.idx).done(function(data) {
+    $.post(prefix + "api/unshare/" + this.props.idx).done(function(data) {
       var result = JSON.parse(data);
       if (result['res'] == -1) {
         toastr.error(result['msg']);
@@ -449,13 +457,13 @@ var EquationGal = React.createClass({
   },
 
   onDelete: function() {
-    $.post("/api/delete/" + this.props.idx).done(function(data) {
+    $.post(prefix + "api/delete/" + this.props.idx).done(function(data) {
       var result = JSON.parse(data);
       if (result['res'] == -1) {
         toastr.error(result['msg']);
       } else {
         toastr.success(result['msg']);
-        browserHistory.push('myEquation');
+        browserHistory.push(prefix+'myEquation');
       }
     });
   },
@@ -479,7 +487,7 @@ var EquationGal = React.createClass({
           <h3>{this.props.name}</h3>
           {'$$' + this.props.val + '$$'}
           <p>
-            <LinkContainer to={"show#" + this.props.idx}>
+            <LinkContainer to={prefix + "show#" + this.props.idx}>
               <Button bsStyle="primary">Show</Button>
             </LinkContainer>
             &nbsp;
@@ -511,7 +519,7 @@ class MyEquation extends React.Component {
   render() {
     var res = null;
     $.ajax({
-       url: "/api/listing",
+       url: prefix + "api/listing",
        type: 'get',
        dataType: 'html',
        async: false,
@@ -534,13 +542,13 @@ class MyEquation extends React.Component {
 
 ReactDOM.render(
   <Router history = {browserHistory}>
-    <Route path = "/" component = {App}>
-      <IndexRedirect to = "home" />
-      <Route path = "home" component = {Home} />
-      <Route path = "about" component = {About} />
-      <Route path = "NewEquation" component = {NewEquation} />
-      <Route path = "MyEquation" component = {MyEquation} />
-      <Route path = "show" component = {Show} />
+    <Route path = {prefix} component = {App}>
+      <IndexRedirect to = {prefix + "home"} />
+      <Route path = {prefix + "home"} component = {Home} />
+      <Route path = {prefix + "about"} component = {About} />
+      <Route path = {prefix + "NewEquation"} component = {NewEquation} />
+      <Route path = {prefix + "MyEquation"} component = {MyEquation} />
+      <Route path = {prefix + "show"} component = {Show} />
     </Route>
   </Router>,
   document.getElementById('content')

@@ -15,4 +15,4 @@ from frontend import *
 app.secret_key = config.secret_key
 app.config['SESSION_TYPE'] = 'filesystem'
 Session(app)
-app.register_blueprint(frontend)
+app.register_blueprint(frontend, url_prefix='/sonmat')

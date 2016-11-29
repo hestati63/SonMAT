@@ -5,7 +5,7 @@ from . import db_session
 from . import fix
 from flask import Flask, Blueprint, render_template, request, send_from_directory, redirect, url_for, session
 from .model import MathExp, User
-app = Flask(__name__)
+app = Flask(__name__, static_url_path='/sonmat/static')
 frontend = Blueprint('frontend', __name__)
 
 @frontend.route('/', methods=['GET'], defaults={'s':''})

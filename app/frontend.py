@@ -107,10 +107,11 @@ def create_equation():
     if 'exp' in session.keys()\
             and session['exp'] != None:
                 DExp = MathExp.query.get(session['exp'])
-                if DExp.owner == None:
+                if not DExp is None and DExp.owner == None:
                     db_session.delete(DExp)
                     db_session.commit()
     session['exp'] = exp.id
+    print exp.id
 
     msg = seshat_obj['latex']
     return json.dumps({'res': 1, 'msg': msg, 'fix': exp.tex})
@@ -118,10 +119,10 @@ def create_equation():
 @frontend.route("/api/show/<int:idx>")
 def show(idx):
     if idx == 0:
-        exp = MathExp.query.get(session['exp'])
+        exp = MathExp.query.get(session['exp']) if 'exp' in session.keys() else None
     else:
         exp = MathExp.query.get(idx)
-
+    print exp
     user = get_user()
     if exp and \
         (idx == 0 or (user != None and exp.owner.id == user.id) or exp.is_shared()) :

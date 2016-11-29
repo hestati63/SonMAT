@@ -298,7 +298,7 @@ class Show extends React.Component {
     }).responseText;
     var res = JSON.parse(data);
     if (res['msg'] == -1) {
-      browserHistory.push(-1);
+      browserHistory.push(prefix + "home");
     }
     this.state = {res: res, idx: idx, sst: 0};
   }
@@ -463,6 +463,7 @@ var EquationGal = React.createClass({
         toastr.error(result['msg']);
       } else {
         toastr.success(result['msg']);
+        MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
         browserHistory.push(prefix+'myEquation');
       }
     });

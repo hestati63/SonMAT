@@ -523,7 +523,7 @@ var EquationGal = React.createClass({
         <div className="card">
           <h3>{this.props.name}</h3>
           {'$$' + this.props.val + '$$'}
-          <p>
+          <p className="card-buttons">
             <LinkContainer to={prefix + "show#" + this.props.idx}>
               <Button bsStyle="primary">Show</Button>
             </LinkContainer>

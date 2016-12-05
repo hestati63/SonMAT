@@ -305,8 +305,8 @@ class NewEquation extends React.Component {
       <Col xs={10} xsOffset={1}>
         <PageHeader>New Equation</PageHeader>
         <div className="canvas-container">
-        <i className="pin"></i>
-        <canvas id="drawing-canvas" width="480" height="300" className="postit yellow" />
+          <i className="pin"></i>
+          <canvas id="drawing-canvas" width="480" height="300" className="postit yellow" />
         </div>
         <div className="controls">
           <a href="#" id="clear">Clear</a>
@@ -338,6 +338,7 @@ class Show extends React.Component {
     }
     this.state = {res: res, idx: idx, sst: 0};
   }
+
   componentDidMount() {
     MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
   }
@@ -460,6 +461,14 @@ var EquationGal = React.createClass({
     };
   },
 
+  componentDidMount: function() {
+    MathJax.Hub.Queue(["Typeset", MathJax.Hub, this.container]);
+  },
+
+  componentDidUpdate: function() {
+    MathJax.Hub.Queue(["Typeset", MathJax.Hub, this.container]);
+  },
+
   componentWillReceiveProps: function(nextProps) {
     this.setState({
       shared: nextProps.shared
@@ -493,14 +502,16 @@ var EquationGal = React.createClass({
   },
 
   onDelete: function() {
+    var self = this;
     $.post(prefix + "api/delete/" + this.props.idx).done(function(data) {
       var result = JSON.parse(data);
       if (result['res'] == -1) {
         toastr.error(result['msg']);
       } else {
         toastr.success(result['msg']);
-        MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
-        browserHistory.push(prefix+'myEquation');
+        if (self.props.onDelete) {
+          self.props.onDelete();
+        }
       }
     });
   },
@@ -522,7 +533,7 @@ var EquationGal = React.createClass({
       <Col xs={6} md={4}>
         <div className="card">
           <h3>{this.props.name}</h3>
-          {'$$' + this.props.val + '$$'}
+          <div ref={(container) => { this.container = container; }}>{'$$' + this.props.val + '$$'}</div>
           <p className="card-buttons">
             <LinkContainer to={prefix + "show#" + this.props.idx}>
               <Button bsStyle="primary">Show</Button>
@@ -539,35 +550,40 @@ var EquationGal = React.createClass({
 });
 
 class MyEquation extends React.Component {
-  componentDidMount() {
-    MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
+  constructor(props) {
+    super(props);
+    var res = $.ajax({
+      url: prefix + "api/listing",
+      type: 'get',
+      dataType: 'html',
+      async: false
+    }).responseText;
+    res = JSON.parse(res);
+    this.state = {equations: res['data']};
   }
 
-  componentDidUpdate() {
-    MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
+  onDelete(id) {
+    var equations = this.state.equations;
+    for (var i = 0; i < equations.length; i++) {
+      if (equations[i].id == id) {
+        equations.splice(i, 1);
+        this.setState({equations: equations});
+        break;
+      }
+    }
   }
 
   renderEquation(exp) {
     return (
-      <EquationGal name={exp.name} val={exp.tex} idx={exp.id} shared={exp.shared} />
+      <EquationGal name={exp.name} val={exp.tex} idx={exp.id} shared={exp.shared} onDelete={this.onDelete.bind(this, exp.id)} />
     );
   }
 
   render() {
-    var res = null;
-    $.ajax({
-       url: prefix + "api/listing",
-       type: 'get',
-       dataType: 'html',
-       async: false,
-       success: function(data) {
-         res = JSON.parse(data);
-       }
-    });
     return (
       <Row>
         <Col xs={10} xsOffset={1}>
-          {res['data'].map((exp) => {
+          {this.state.equations.map((exp) => {
             return this.renderEquation(exp);
           })}
         </Col>

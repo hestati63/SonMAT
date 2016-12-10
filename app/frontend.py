@@ -31,20 +31,33 @@ def get_user():
 def traverse_tree(tree):
     yield tree
     children = tree.get('children')
-    for child, edge_label in children:
+    for child in children:
         for nested_child in traverse_tree(child):
             yield nested_child
 
 def nodes_to_tree(root):
     tree = {'name': str(root.get_name()),
             'symbol': root.get('symbol'),
+            'is_frac': False,
             'children': []}
     children = root.get('children')
     if not children:
         return tree
+    if len(children) == 1:
+        return nodes_to_tree(children[0])
+    if len(children) == 2 and 'Frac' in children[1].get_name():
+        tree['is_frac'] = True
+        tree['children'].append(nodes_to_tree(children[0]))
+        tree['children'].append(nodes_to_tree(children[1].get('children')[0]))
+        tree['children'].append(nodes_to_tree(children[1].get('children')[1]))
+        return tree
 
-    for child, edge_label in children:
-        tree['children'].append([nodes_to_tree(child), edge_label])
+    for child in children:
+        child_tree = nodes_to_tree(child)
+        if child_tree['is_frac'] or not child_tree['children']:
+            tree['children'].append(child_tree)
+        else:
+            tree['children'].extend(child_tree['children'])
     return tree
 
 def parse_seshat(strokes, seshat_output, dot_file):
@@ -98,7 +111,7 @@ def parse_seshat(strokes, seshat_output, dot_file):
         node.set('parent', None)
         node.set('children', [])
         nodes[node.get_name()] = node
-    for edge in dot_graph.get_edge_list():
+    for edge in sorted(dot_graph.get_edge_list(), key=lambda x: x.get_sequence()):
         src = edge.get_source()
         dest = edge.get_destination()
         if src not in nodes:
@@ -112,7 +125,7 @@ def parse_seshat(strokes, seshat_output, dot_file):
             node.set('children', [])
             nodes[dest] = node
         src_children = nodes[src].get('children')
-        src_children.append([nodes[dest], str(edge.get_label())])
+        src_children.append(nodes[dest])
         nodes[src].set('children', src_children)
         nodes[dest].set('parent', nodes[src])
 

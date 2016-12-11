@@ -37,7 +37,8 @@ hangul_map = {'\\rightarrow': '->', '\\lt': '<', '\\gt': '>',
         '\\alpha': 'alpha', '\\beta': 'beta', '\\Delta': 'Delta',
         '\\gamma': 'gamma', '\\lambda': 'lambda', '\\mu': 'mu',
         '\\phi': 'phi', '\\pi': 'pi', '\\sigma': 'sigma',
-        '\\Sigma': 'Sigma', '\\sum': 'sum', '\\Pi':'Pi', '\\theta': 'theta'}
+        '\\Sigma': 'Sigma', '\\sum': 'sum', '\\Pi':'Pi', '\\theta': 'theta'
+        }
 
 class MathExp(Base):
     __tablename__ = "MathExp"
@@ -63,16 +64,14 @@ class MathExp(Base):
             _next = sym_li.pop(0)
             location = _next.location(_cur)
             self._internal_loop(_next, sym_li)
-            print _next
             if location in [0, 1, -1]:
                 _cur.next.append((location, _next))
             else:
-                sym_li.insert(0, _next)
+                sym_l.insert(0, _next)
                 return False
         return True
 
     def loop_wrap(self, v):
-        print '->', v
         if not v['symbol'] is None:
             return v['symbol']
         elif v['is_frac']:
@@ -86,7 +85,10 @@ class MathExp(Base):
                 ymin = max(nume.get_link_ymin(), deno.get_link_ymin(), bar.get_link_ymin())
                 return fix.symbol(-1, '\\frac{%s}{%s}'%(nume.gen_tex(), deno.gen_tex()), xmax, xmin, ymax, ymin, bar.centroid, 0)
         else:
-            return self._fixup(map(self.loop_wrap, v['children']))
+            childs = map(self.loop_wrap, v['children'])
+            if any(map(lambda x: x is None, childs)):
+                return None
+            return self._fixup(childs)
 
 
     def _fixup(self, res):
@@ -97,12 +99,10 @@ class MathExp(Base):
             return None
 
     def fixup(self):
+        print self.tree
         fixed = self.loop_wrap(self.tree)
         if not fixed is None:
             self.tex = fixed.gen_tex()
-            print 'trans!!', self.tex
-        else:
-            print self.tex
 
 
     def is_shared(self):
@@ -156,6 +156,8 @@ class MathExp(Base):
 
         for k in hangul_map.keys():
             hangul = hangul.replace(k, ' {} '.format(hangul_map[k]))
+
+        hangul = hangul.replace('\\', '`')
         return hangul
 
     def make_word(self):

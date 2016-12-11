@@ -93,15 +93,33 @@ class symbol:
             return -2
 
     def gen_tex(self):
-        res = self.latex
+        base = self.latex
+        res = ''
+        pre = -2
         while len(self.next) != 0:
             location, _next = self.next.pop(0)
             if location == 1:
-                res += "^{%s}"%(_next.gen_tex())
-            elif location == 0:
+                if pre == -1:
+                    res += '}'
+                if pre != location:
+                    res += '^{'
                 res += _next.gen_tex()
+            elif location == 0:
+                if pre in [1, -1]:
+                    res += '}'
+                res += ' ' + _next.gen_tex()
             elif location == -1:
-                res += "_{%s}"%(_next.gen_tex())
-        return res
+                if pre == 1:
+                    res += '}'
+                if pre != location:
+                    res += '_{'
+                res += _next.gen_tex()
+            pre = location
+        if pre in [1, -1]:
+            res += '}'
+        if base == '\\sqrt':
+            return '\\sqrt{%s}'%res
+        else:
+            return base + res
 
 

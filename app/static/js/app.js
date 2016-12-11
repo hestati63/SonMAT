@@ -306,7 +306,7 @@ class NewEquation extends React.Component {
         <PageHeader>New Equation</PageHeader>
         <div className="canvas-container">
           <i className="pin"></i>
-          <canvas id="drawing-canvas" width="480" height="300" className="postit yellow" />
+          <canvas id="drawing-canvas" width="600" height="300" className="postit yellow" />
         </div>
         <div className="controls">
           <a href="#" id="clear">Clear</a>

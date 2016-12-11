@@ -170,7 +170,7 @@ body {
 }
 
 .mobile-signin{
-  margin-top: 400px;
+  margin-top: 200px;
 }
 .mobile-signin input{
   width: 80%;
@@ -192,10 +192,11 @@ body {
 
 .btn-bottom{
   width: 80%;
-  position: absolute;
+  position: relative;
   bottom: 100px;
   left:50%;
   margin-left: -40%;
+  margin-top:200px;
 }
 
 .mobile-canvas-container{

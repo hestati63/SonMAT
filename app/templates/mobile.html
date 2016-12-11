@@ -1,0 +1,41 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <title>SonMat</title>
+    <link rel="stylesheet" href="{{url_for('static', filename='css/bootstrap.min.css')}}">
+    <link rel="stylesheet" href="{{url_for('static', filename='css/bootstrap-theme.min.css')}}">
+    <link rel="stylesheet" href="{{url_for('static', filename='css/toastr.min.css')}}">
+    <link rel="stylesheet" href="{{url_for('static', filename='css/app.css')}}">
+
+    <script src="{{url_for('static', filename='js/jquery-3.1.1.min.js')}}"></script>
+    <script src="{{url_for('static', filename='js/bootstrap.min.js')}}"></script>
+    <script src="{{url_for('static', filename='js/jsketch.min.js')}}"></script>
+    <script src="{{url_for('static', filename='js/jquery.sketchable.min.js')}}"></script>
+    <script src="{{url_for('static', filename='js/jquery.sketchable.memento.min.js')}}"></script>
+
+    <script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        displayAlign: "left",
+        tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}
+      });
+    </script>
+  </head>
+  <body>
+    <div id="content"></div>
+    <script src="{{url_for('static', filename='js/react.min.js')}}"></script>
+    <script src="{{url_for('static', filename='js/react-dom.js')}}"></script>
+    <script src="{{url_for('static', filename='js/browser.min.js')}}"></script>
+    <script src="{{url_for('static', filename='js/react-router.js')}}"></script>
+    <script src="{{url_for('static', filename='js/react-bootstrap.min.js')}}"></script>
+    <script src="{{url_for('static', filename='js/ReactRouterBootstrap.js')}}"></script>
+    <script src="{{url_for('static', filename='js/ReactRouter.min.js')}}"></script>
+    <script src="{{url_for('static', filename='js/toastr.min.js')}}"></script>
+    <script src="{{url_for('static', filename='js/mapp.js')}}" type="text/babel"></script>
+    <script>
+      toastr.options.closeMethod = 'fadeOut';
+      toastr.options.closeDuration = 300;
+      toastr.options.closeEasing = 'swing';
+    </script>
+  </body>
+</html>

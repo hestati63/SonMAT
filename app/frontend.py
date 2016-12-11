@@ -36,7 +36,7 @@ def get_user():
 def traverse_tree(tree):
     yield tree
     children = tree.get('children')
-    for child in children:
+    for child, edge_label in children:
         for nested_child in traverse_tree(child):
             yield nested_child
 
@@ -44,22 +44,39 @@ def nodes_to_tree(root):
     tree = {'name': str(root.get_name()),
             'symbol': root.get('symbol'),
             'is_frac': False,
+            'is_sqrt': False,
             'children': []}
     children = root.get('children')
+    if 'Mroot' in str(root.get_name()):
+        tree['symbol'] = None
+        for child, edge_label in children:
+            if not tree['symbol']:
+                tree['symbol'] = nodes_to_tree(child)['symbol']
+                tree['symbol'].latex += '['
+            else:
+                tree['symbol'].latex += nodes_to_tree(child)['symbol'].latex
+        tree['symbol'].latex += ']'
+        return tree
     if not children:
         return tree
     if len(children) == 1:
-        return nodes_to_tree(children[0])
-    if len(children) == 2 and 'Frac' in children[1].get_name():
+        return nodes_to_tree(children[0][0])
+    if len(children) == 2 and 'Frac' in children[1][0].get_name():
         tree['is_frac'] = True
-        tree['children'].append(nodes_to_tree(children[0]))
-        tree['children'].append(nodes_to_tree(children[1].get('children')[0]))
-        tree['children'].append(nodes_to_tree(children[1].get('children')[1]))
+        tree['children'].append(nodes_to_tree(children[0][0]))
+        tree['children'].append(nodes_to_tree(children[1][0].get('children')[0][0]))
+        tree['children'].append(nodes_to_tree(children[1][0].get('children')[1][0]))
+        return tree
+    if children[1][1] == 'I':
+        tree['is_sqrt'] = True
+        tree['children'].append(nodes_to_tree(children[0][0]))
+        tree['children'].append(nodes_to_tree(children[1][0]))
         return tree
 
-    for child in children:
+    for child, edge_label in children:
         child_tree = nodes_to_tree(child)
-        if child_tree['is_frac'] or not child_tree['children']:
+        if child_tree['is_frac'] or child_tree['is_sqrt'] \
+                or not child_tree['children']:
             tree['children'].append(child_tree)
         else:
             tree['children'].extend(child_tree['children'])
@@ -130,7 +147,7 @@ def parse_seshat(strokes, seshat_output, dot_file):
             node.set('children', [])
             nodes[dest] = node
         src_children = nodes[src].get('children')
-        src_children.append(nodes[dest])
+        src_children.append([nodes[dest], str(edge.get_label())])
         nodes[src].set('children', src_children)
         nodes[dest].set('parent', nodes[src])
 

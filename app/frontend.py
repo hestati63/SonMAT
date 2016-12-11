@@ -2,6 +2,7 @@ import json
 import tempfile
 import subprocess
 import pydot
+import re
 from . import db_session
 from . import fix
 from flask import Flask, Blueprint, render_template, request, send_from_directory, redirect, url_for, session
@@ -12,7 +13,11 @@ frontend = Blueprint('frontend', __name__)
 @frontend.route('/', methods=['GET'], defaults={'s':''})
 @frontend.route('/<string:s>', methods=['GET'])
 def main(s):
-    return render_template("main.html")
+    agent = request.user_agent.string
+    if re.search('/Mobile|iP(hone|od|ad)|Android|BlackBerry|IEMobile|Kindle|NetFront|Silk-Accelerated|(hpw|web)OS|Fennec|Minimo|Opera M(obi|ini)|Blazer|Dolfin|Dolphin|Skyfire|Zune/', agent):
+        return render_template("mobile.html")
+    else:
+        return render_template("main.html")
 
 @frontend.route('/formula/<path:path>', methods=['GET'])
 def send_file(path):

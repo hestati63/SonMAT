@@ -1,6 +1,7 @@
 import json
 import tempfile
 import subprocess
+import pydot
 from . import db_session
 from . import fix
 from flask import Flask, Blueprint, render_template, request, send_from_directory, redirect, url_for, session
@@ -27,8 +28,39 @@ def get_user():
     return User.query.get(session['uid']) \
             if 'uid' in session.keys() else None
 
+def traverse_tree(tree):
+    yield tree
+    children = tree.get('children')
+    for child in children:
+        for nested_child in traverse_tree(child):
+            yield nested_child
 
-def parse_seshat(strokes, seshat_output):
+def nodes_to_tree(root):
+    tree = {'name': str(root.get_name()),
+            'symbol': root.get('symbol'),
+            'is_frac': False,
+            'children': []}
+    children = root.get('children')
+    if not children:
+        return tree
+    if len(children) == 1:
+        return nodes_to_tree(children[0])
+    if len(children) == 2 and 'Frac' in children[1].get_name():
+        tree['is_frac'] = True
+        tree['children'].append(nodes_to_tree(children[0]))
+        tree['children'].append(nodes_to_tree(children[1].get('children')[0]))
+        tree['children'].append(nodes_to_tree(children[1].get('children')[1]))
+        return tree
+
+    for child in children:
+        child_tree = nodes_to_tree(child)
+        if child_tree['is_frac'] or not child_tree['children']:
+            tree['children'].append(child_tree)
+        else:
+            tree['children'].extend(child_tree['children'])
+    return tree
+
+def parse_seshat(strokes, seshat_output, dot_file):
     symbols = []
     latex = ''
     index = 0
@@ -73,7 +105,48 @@ def parse_seshat(strokes, seshat_output):
         elif latex_line:
             latex = line
 
-    return {'latex': latex, 'symbols': symbols}
+    dot_graph = pydot.graph_from_dot_file(dot_file)[0]
+    nodes = {}
+    for node in dot_graph.get_node_list():
+        node.set('parent', None)
+        node.set('children', [])
+        nodes[node.get_name()] = node
+    for edge in sorted(dot_graph.get_edge_list(), key=lambda x: x.get_sequence()):
+        src = edge.get_source()
+        dest = edge.get_destination()
+        if src not in nodes:
+            node = pydot.Node(src)
+            node.set('parent', None)
+            node.set('children', [])
+            nodes[src] = node
+        if dest not in nodes:
+            node = pydot.Node(dest)
+            node.set('parent', None)
+            node.set('children', [])
+            nodes[dest] = node
+        src_children = nodes[src].get('children')
+        src_children.append(nodes[dest])
+        nodes[src].set('children', src_children)
+        nodes[dest].set('parent', nodes[src])
+
+    # Find root node
+    root = None
+    if len(nodes) > 0:
+        root = nodes.values()[0]
+        while root.get('parent') != None:
+            root = root.get('parent')
+
+    # Set symbol to each node
+    symbols_copy = [symbol for symbol in symbols]
+    for node in traverse_tree(root):
+        children = node.get('children')
+        if not children:
+            node.set('symbol', symbols_copy.pop(0))
+
+    # Convert nodes to tree
+    tree = nodes_to_tree(root)
+
+    return {'latex': latex, 'symbols': symbols, 'tree': tree}
 
 @frontend.route('/api/new', methods=['POST'])
 def create_equation():
@@ -97,7 +170,7 @@ def create_equation():
          '-d', out_file.name],
         stdout=subprocess.PIPE)
     seshat_output = pipe.stdout.read()
-    seshat_obj = parse_seshat(strokes, seshat_output)
+    seshat_obj = parse_seshat(strokes, seshat_output, out_file.name)
     exp = MathExp(seshat_obj)
     exp.name = "Result"
     exp.fixup()

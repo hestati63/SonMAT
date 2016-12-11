@@ -2,17 +2,50 @@ from __future__ import division
 b = 1/8  #SUPERHOR | SUBSCHOR ratio
 t = 1/6  #SUPER | SUBSC ratio
 class symbol:
-    def __init__(self, idx, latex, x_max, x_min, y_max, y_min, centroid):
+    def __init__(self, idx, latex, x_max, x_min, y_max, y_min, centroid, points):
         self.idx   = idx
         self.latex = latex
         self.next = []
 
         x, y = centroid
         self.centroid = (int(x), int(y))
+        self.points = points
 
         self.x_max, self.x_min = (x_max, x_min)
         self.y_max, self.y_min = (y_max, y_min)
         self.__base()
+
+    def get_link_xmax(self):
+        cur = self.x_max
+        for _, n in self.next:
+            get = n.get_link_xmax()
+            if get > cur:
+                cur = get
+        return cur
+
+    def get_link_xmin(self):
+        cur = self.x_min
+        for _, n in self.next:
+            get = n.get_link_xmin()
+            if get < cur:
+                cur = get
+        return cur
+
+    def get_link_ymax(self):
+        cur = self.y_max
+        for _, n in self.next:
+            get = n.get_link_ymax()
+            if get > cur:
+                cur = get
+        return cur
+
+    def get_link_ymin(self):
+        cur = self.y_min
+        for _, n in self.next:
+            get = n.get_link_ymin()
+            if get < cur:
+                cur = get
+        return cur
 
     def set_next(self, sym):
         self.next = sym
@@ -58,6 +91,7 @@ class symbol:
             return -1
         else:
             return -2
+
     def gen_tex(self):
         res = self.latex
         while len(self.next) != 0:

@@ -105,7 +105,7 @@ def parse_seshat(strokes, seshat_output, dot_file):
                         y_min = point[1]
                     elif y_max < point[1]:
                         y_max = point[1]
-            symbols.append(fix.symbol(index, sym_latex, x_max, x_min, y_max, y_min, (cx/n, cy/n)))
+            symbols.append(fix.symbol(index, sym_latex, x_max, x_min, y_max, y_min, (cx/n, cy/n), n))
             index += 1
         elif latex_line:
             latex = line
@@ -189,7 +189,6 @@ def create_equation():
                     db_session.delete(DExp)
                     db_session.commit()
     session['exp'] = exp.id
-    print exp.id
 
     msg = seshat_obj['latex']
     return json.dumps({'res': 1, 'msg': msg, 'fix': exp.tex})
@@ -200,7 +199,6 @@ def show(idx):
         exp = MathExp.query.get(session['exp']) if 'exp' in session.keys() else None
     else:
         exp = MathExp.query.get(idx)
-    print exp
     user = get_user()
     if exp and \
         (idx == 0 or (user != None and exp.owner.id == user.id) or exp.is_shared()) :

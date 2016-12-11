@@ -2,7 +2,7 @@ from . import Base, engine
 from sqlalchemy import Table, Column, Integer, String, Boolean, DateTime, ForeignKey, desc, asc
 from sqlalchemy.orm import relationship, backref
 from werkzeug.security import generate_password_hash, check_password_hash
-import json
+import json, fix
 
 
 
@@ -54,6 +54,7 @@ class MathExp(Base):
     def __init__(self, _res):
         self.res = _res['symbols']
         self.tex = _res['latex']
+        self.tree = _res['tree']
         sorted(self.res, key = lambda x: x.idx)
         self.shared = False
 
@@ -70,12 +71,38 @@ class MathExp(Base):
                 return False
         return True
 
+    def loop_wrap(self, v):
+        print '->', v
+        if not v['symbol'] is None:
+            return v['symbol']
+        elif v['is_frac']:
+            nume = self.loop_wrap(v['children'][0])
+            bar = self.loop_wrap(v['children'][1])
+            deno = self.loop_wrap(v['children'][2])
+            if nume and deno:
+                xmax = max(nume.get_link_xmax(), deno.get_link_xmax(), bar.get_link_xmax())
+                xmin = max(nume.get_link_xmin(), deno.get_link_xmin(), bar.get_link_xmin())
+                ymax = max(nume.get_link_ymax(), deno.get_link_ymax(), bar.get_link_ymax())
+                ymin = max(nume.get_link_ymin(), deno.get_link_ymin(), bar.get_link_ymin())
+                return fix.symbol(-1, '\\frac{%s}{%s}'%(nume.gen_tex(), deno.gen_tex()), xmax, xmin, ymax, ymin, bar.centroid, 0)
+        else:
+            return self._fixup(map(self.loop_wrap, v['children']))
+
+
+    def _fixup(self, res):
+        _cur = res.pop(0)
+        if self._internal_loop(_cur, res):
+            return _cur
+        else:
+            return None
+
     def fixup(self):
-        if 'frac' in self.tex:
-            return
-        _cur = self.res.pop(0)
-        if self._internal_loop(_cur, self.res):
-            self.tex = _cur.gen_tex()
+        fixed = self.loop_wrap(self.tree)
+        if not fixed is None:
+            self.tex = fixed.gen_tex()
+            print 'trans!!', self.tex
+        else:
+            print self.tex
 
 
     def is_shared(self):

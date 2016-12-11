@@ -85,9 +85,9 @@ def parse_seshat(strokes, seshat_output, dot_file):
             continue
 
         if symbol_lines:
-            sym_latex, sym_strokes = line.split('{')
-            sym_latex = sym_latex.strip()
-            sym_strokes = map(int, sym_strokes.split('}')[0].strip().split())
+            splits = line.split()
+            sym_latex = splits[0]
+            sym_strokes = map(int, splits[2:-1])
             sym_strokes = [strokes[idx] for idx in sym_strokes]
             x_min = x_max = sym_strokes[0][0][0]
             y_min = y_max = sym_strokes[0][0][1]

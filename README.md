@@ -1,4 +1,8 @@
-# CS408
+# SonMAT
+
+CS408(Computer Science Project) in Fall2016.
+Online mathmetical handwriting IME service
+
 
 ## install
 
